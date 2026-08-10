@@ -9,60 +9,6 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
-OPERATORS = {
-    0: "==",
-    1: ">=",
-    2: "<=",
-    3: ">",
-    4: "<",
-    5: "!=",
-}
-
-CONTROL_TYPES = {
-    0: "=",
-    1: "+=",
-    2: "-=",
-    3: "*=",
-    4: "/=",
-    5: "%=",
-}
-
-CONTROL_ACTOR = {
-    0: "level",
-    1: "exp",
-    2: "hp",
-    3: "sp",
-    4: "maxhp",
-    5: "maxsp",
-    6: "str",
-    7: "dex",
-    8: "agi",
-    9: "int",
-    10: "atk",
-    11: "pdef",
-    12: "mdef",
-    13: "eva",
-}
-
-CONTROL_CHARACTER = {
-    0: "x",
-    1: "y",
-    2: "direction",
-    3: "screen_x",
-    4: "screen_y",
-    5: "terrain_tag",
-}
-
-CONTROL_OTHER = {
-    0: "map_id",
-    1: "party_size",
-    2: "gold",
-    3: "steps",
-    4: "play_time",
-    5: "timer",
-    6: "save_count",
-}
-
 
 def copy(src: dict, dst: dict, *keys: str):
     for key in keys:
@@ -80,15 +26,19 @@ def getint(params: list[dict], i: int) -> int:
 
 
 def getstr(params: list[dict], i: int) -> str:
+    if isinstance(params[i], str):
+        return params[i]  # type: ignore
     return params[i]["String"]
-
-
-def getarr(params: list[dict], i: int) -> list:
-    return params[i]["Array"]
 
 
 def getparam(params: list[dict], i: int) -> int | str | list | dict:
     param = params[i]
+    if isinstance(param, str):  # WME
+        try:
+            return int(param)
+        except ValueError:
+            return param
+
     if (value := param.get("Integer")) is not None:
         return value
     elif (value := param.get("String")) is not None:
@@ -152,21 +102,6 @@ def do_os16(args: Namespace) -> None:
         map_infos: dict = json.load(file)
         logger.info("loaded map infos")
 
-    # load switches and variables
-    with open(in_path / "System.json") as file:
-        system: dict = json.load(file)
-        logger.info("loaded system")
-
-    global os16_switches, os16_gamevars
-    os16_switches = system["switches"]
-    os16_gamevars = system["variables"]
-    del system
-
-    # load actors
-    with open(in_path / "Actors.json") as file:
-        actors: dict = json.load(file)
-        logger.info("loaded actors")
-
     # process files
     for p in in_path.iterdir():
         if p.suffix != ".json":
@@ -196,7 +131,7 @@ def do_os16(args: Namespace) -> None:
             map_ = {"name": map_name, "events": events}
 
             if not args.dry_run:
-                with open(out_path / f"map{map_num:03}.json", "w") as file:
+                with open(out_path / f"map{map_num}.json", "w") as file:
                     save(map_, file, args.pretty)
 
         elif p.stem == "xScripts":
@@ -215,7 +150,7 @@ def do_os16(args: Namespace) -> None:
                         logger.debug(f"writing script {name}")
                         file.write(src)
 
-    logger.info("done processing OS16.")
+    logger.info("done processing OS16")
 
 
 def process_common_events_new(events: list) -> list[dict]:
@@ -225,13 +160,7 @@ def process_common_events_new(events: list) -> list[dict]:
             continue
 
         out = {}
-        copy(event, out, "id", "name")
-
-        if event["trigger"]:
-            out["trg"] = event["trigger"]
-        if event["switch_id"]:
-            out["sw"] = event["switch_id"]
-
+        copy(event, out, "id", "name", "trigger", "switch_id")
         commands = parse_commands_new(event["list"])
         out["commands"] = commands
         result.append(out)
@@ -256,103 +185,11 @@ def parse_commands_new(commands: list[dict]) -> list[dict]:
             case 101:  # Show Text
                 # player name, colors, portraits, etc. will be done in JS.
                 text: str = getstr(params, 0)
-
                 # merge following 401s
                 while (next_ := at(commands, i + 1)) and next_["code"] == 401:
                     text += " " + getstr(next_["parameters"], 0)  # type: ignore
                     i += 1
-
                 out["params"] = [text]
-
-            case 111:  # Conditional Branch
-                break
-                type_ = getint(params, 0)
-                match type_:
-                    case 0:
-                        data["type"] = "switch"
-                        data["index"] = getint(params, 1)
-                        data["name"] = os16_switches[data["index"]]
-                        data["on"] = getint(params, 2) == 0
-
-                    case 1:
-                        data["type"] = "variable"
-                        data["value1"] = os16_gamevars[getint(params, 1)]
-                        data["oper"] = OPERATORS[getint(params, 4)]
-                        data["value2"] = (
-                            getint(params, 3)
-                            if getint(params, 2) == 0
-                            else os16_gamevars[getint(params, 3)]
-                        )
-
-                    case 2:
-                        data["type"] = "selfSwitch"
-                        data["name"] = getstr(params, 1)
-                        data["on"] = getint(params, 2) == 0
-
-                    case 4:
-                        data["type"] = "actor"
-                        data["actor"] = os16_actors[getint(params, 1)]
-                        logger.debug(f"actor ref: {data["actor"]}")
-
-                        match getint(params, 2):
-                            case 0:
-                                data["check"] = "inParty"
-                            case _:
-                                raise ValueError(
-                                    f"unsupported actor check type: {type_}"
-                                )
-
-                    case 6:
-                        data["type"] = "character"
-                        data["char"] = getint(params, 1)
-                        data["dir"] = getint(params, 2)
-
-                    case 8:
-                        data["type"] = "item"
-                        data["id"] = getint(params, 1)
-
-                    case 11:
-                        data["type"] = "button"
-                        data["btn"] = getint(params, 1)
-
-                    case 12:
-                        data["type"] = "script"
-
-                    case _:  # unused in OS16
-                        raise ValueError(f"unsupported condition type: {type_}")
-
-            case 122:  # Control Variables
-                break
-                data["from"] = getint(params, 0)
-                data["to"] = getint(params, 1)
-                data["type"] = CONTROL_TYPES[getint(params, 2)]
-                match getint(params, 3):
-                    case 0:  # invariable
-                        data["value"] = getparam(params, 4)
-                    case 1:  # variable
-                        data["value"] = f"$var{getint(params, 4)}"
-                    case 2:  # random number
-                        from_ = getint(params, 4)
-                        to = getint(params, 5)
-                        data["value"] = f"$rand({from_}..={to})"
-                    case 3:  # item
-                        data["value"] = f"$item({getint(params, 4)})"
-                    case 4:  # actor
-                        actor = getint(params, 4)
-                        type_ = CONTROL_ACTOR[getint(params, 5)]
-                        data["value"] = f"$actor{actor}.{type_}"
-                    case 5:  # enemy
-                        enemy = getint(params, 4)
-                        type_ = CONTROL_ACTOR[getint(params, 5) + 2]
-                        data["value"] = f"$enemy{enemy}.{type_}"
-                    case 6:  # character
-                        char = getint(params, 4)
-                        type_ = CONTROL_CHARACTER[getint(params, 5)]
-                        data["value"] = f"$character{char}.{type_}"
-                    case 7:  # other
-                        type_ = CONTROL_OTHER[getint(params, 4)]
-                        data["value"] = f"${type_}"
-
             case 355:
                 script = getstr(params, 0) + "\n"
                 # merge additional script lines
@@ -360,10 +197,8 @@ def parse_commands_new(commands: list[dict]) -> list[dict]:
                     i += 1
                     script += getstr(next_["parameters"], 0) + "\n"  # type: ignore
                 out["params"] = [script]
-
             case 0 | 108 | 408 | 412 | 404 | 509 | 655:
                 out = None  # skip empties
-
             case _:
                 pass
 
@@ -380,7 +215,11 @@ def parse_commands_new(commands: list[dict]) -> list[dict]:
 
 def process_map_new(map_: dict) -> list[dict]:
     result = []
-    for event in map_["events"].values():
+    events = map_["events"]
+    if isinstance(events, dict):  # OS16
+        events = events.values()
+
+    for event in events:
         out = {}
         copy(event, out, "id", "name", "x", "y")
 
@@ -389,18 +228,18 @@ def process_map_new(map_: dict) -> list[dict]:
         for page in event["pages"]:
             page_out = {}
 
-            pc: dict | None = page.get("condition", None)
-            if pc is not None:
+            pagecond: dict | None = page.get("condition", None)
+            if pagecond is not None:
                 condition = {}
-                if pc["switch1_valid"]:
-                    condition["switch1"] = pc["switch1_id"]
-                if pc["switch2_valid"]:
-                    condition["switch2"] = pc["switch2_id"]
-                if pc["variable_valid"]:
-                    condition["var"] = pc["variable_id"]
-                    condition["value"] = pc["variable_value"]
-                if pc["self_switch_valid"]:
-                    condition["selfSwitch"] = pc["self_switch_ch"]
+                if pagecond["switch1_valid"]:
+                    condition["switch1"] = pagecond["switch1_id"]
+                if pagecond["switch2_valid"]:
+                    condition["switch2"] = pagecond["switch2_id"]
+                if pagecond["variable_valid"]:
+                    condition["var"] = pagecond["variable_id"]
+                    condition["value"] = pagecond["variable_value"]
+                if pagecond["self_switch_valid"]:
+                    condition["selfSwitch"] = pagecond["self_switch_ch"]
                 if condition:
                     page_out["condition"] = condition
 
@@ -414,7 +253,55 @@ def process_map_new(map_: dict) -> list[dict]:
 
 
 def do_wme(args: Namespace) -> None:
-    raise NotImplementedError
+    # first, check if we've been passed the path to the root or gamedata.
+    in_dir = Path(args.directory)
+    if (gd := in_dir / "gamedata").exists() and gd.is_dir():
+        in_dir = gd
+    out_dir = Path(args.output)
+    os.makedirs(out_dir, exist_ok=True)
+
+    # load map names
+    logger.info("loading map names")
+    map_names: dict[int, str] = {}
+    with open(in_dir / "oneshot_map_names.json") as file:
+        obj: dict = json.load(file)
+        for o in obj["map_names"]:
+            id_ = o["id"]
+            name = o["name"]
+            map_names[id_] = name
+            logger.debug(f"loaded map info for {name} ({id_})")
+        del obj
+
+    # load common events
+    logger.info("loading common events")
+    with open(in_dir / "oneshot_common_events.json") as file:
+        obj: dict = json.load(file)
+    events = process_common_events_new(obj["common_events"])
+    if not args.dry_run:
+        with open(out_dir / "common.json", "w") as file:
+            save(events, file, args.pretty)
+            logger.debug("saved common events")
+
+    # process maps
+    logger.info("processing maps")
+    for p in (in_dir / "maps").iterdir():
+        if not p.stem.startswith("events_map"):
+            continue
+
+        map_num = int(p.stem[10:])  # skip "events_map"
+        map_name = map_names[map_num]
+        logger.debug(f"processing {map_name} ({map_num})")
+
+        with open(p) as file:
+            map_ = json.load(file)
+        events = process_map_new(map_)
+        if not args.dry_run:
+            with open(out_dir / f"map{map_num}.json", "w") as file:
+                logger.debug(f"saving map {map_name}")
+                out = {"name": map_name, "events": events}
+                save(out, file, args.pretty)
+
+    logger.info("done processing WME")
 
 
 if __name__ == "__main__":
