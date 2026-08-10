@@ -2,8 +2,8 @@
 
 TODO:
 - [x] Parse events from OS16
-- [ ] Make WME parsing work
-- [ ] Convert OS14's XML to JSON
+- [x] Make WME parsing work
+- [x] Convert OS14's XML to JSON
 - [ ] Add a frontend to display everything
 - [ ] Document the preprocessor
 
