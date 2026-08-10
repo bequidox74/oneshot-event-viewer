@@ -1,6 +1,7 @@
 import json
 import argparse
 import logging
+import xml.etree.ElementTree as ET
 
 from argparse import Namespace
 import os
@@ -62,6 +63,28 @@ def params_to_list(params: list[dict]) -> list:
     return result
 
 
+def gett(elem: ET.Element, tag: str) -> ET.Element:
+    result = elem.find(tag)
+    assert result is not None
+    return result
+
+
+def getv(elem: ET.Element, tag: str) -> str:
+    e_tag = gett(elem, tag)
+    text = e_tag.text
+    return text if text is not None else ""
+
+
+def geta(elem: ET.Element, attribute: str) -> str:
+    att = elem.get(attribute)
+    assert att is not None
+    return att
+
+
+def getflag(elem: ET.Element, tag: str) -> bool:
+    return False if getv(elem, tag) == "F" else True
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("directory")
@@ -89,7 +112,127 @@ def main() -> None:
 
 
 def do_os14(args: Namespace) -> None:
-    raise NotImplementedError
+    in_path = Path(args.directory)
+    out_path = Path(args.output)
+    os.makedirs(out_path, exist_ok=True)
+
+    # region read map names
+    logger.info("loading map names")
+    map_names: dict[int, str] = {}
+    emt = ET.parse(in_path / "RPG_RT.emt")
+    for map_info in emt.getroot()[0][0]:
+        map_names[int(geta(map_info, "id"))] = getv(map_info, "name")
+    del emt
+    # endregion
+
+    # region process common events
+    logger.info("processing common events")
+    edb = ET.parse(in_path / "RPG_RT.edb")
+    db = edb.getroot()[0]
+    out = []
+    for event in gett(db, "commonevents"):
+        out_event = {}
+        out_event["id"] = int(geta(event, "id"))
+        out_event["name"] = getv(event, "name")
+        out_event["trigger"] = getv(event, "trigger")
+        out_event["switchFlag"] = getflag(event, "switch_flag")
+        out_event["switchId"] = int(getv(event, "switch_id"))
+
+        commands = parse_commands_old(gett(event, "event_commands"))
+        if commands:
+            out_event["list"] = commands
+        out.append(out_event)
+
+    if not args.dry_run:
+        with open(out_path / "common.json", "w") as file:
+            save(out, file, args.pretty)
+    del edb
+    # endregion
+
+    # region process maps
+    logger.info("processing maps")
+    for p in in_path.iterdir():
+        if not p.stem.startswith("Map"):
+            continue
+
+        map_id = int(p.stem[3:])
+        map_name = map_names[map_id]
+        logger.debug(f"processing map {map_name} (map_id)")
+        root = ET.parse(p).getroot()[0]
+
+        out_events = []
+        for event in gett(root, "events"):
+            out_event = {}
+            out_event["id"] = int(geta(event, "id"))
+            out_event["x"] = int(getv(event, "x"))
+            out_event["y"] = int(getv(event, "y"))
+
+            out_pages = []
+            for page in gett(event, "pages"):
+                out_page = parse_page_2k3(page)
+                out_pages.append(out_page)
+            out_event["pages"] = out_pages
+            out_events.append(out_event)
+        out = {"name": map_name, "events": out_events}
+
+        if not args.dry_run:
+            with open(out_path / f"map{map_id}.json", "w") as file:
+                logger.debug(f"writing map {map_name} ({map_id})")
+                save(out, file, args.pretty)
+    # endregion
+
+
+def parse_page_2k3(page: ET.Element) -> dict:
+    out_page = {}
+
+    conditions = {}
+    epc = gett(page, "condition")[0]
+    flags = gett(epc, "flags")[0]
+
+    def add_condition(flag: str, value: str, key: str | None = None):
+        if key is None:
+            key = flag
+        if getflag(flags, flag):
+            conditions[key] = int(getv(epc, value))
+
+    add_condition("switch_a", "switch_a_id", "switch1")
+    add_condition("switch_b", "switch_b_id", "switch2")
+    add_condition("variable", "variable_value", "var")
+    add_condition("item", "item_id")
+    add_condition("actor", "actor_id")
+    add_condition("timer", "timer_sec")
+    add_condition("timer2", "timer2_sec")
+    if conditions:
+        out_page["condition"] = conditions
+
+    commands = parse_commands_old(gett(page, "event_commands"))
+    if commands:
+        out_page["list"] = commands
+    return out_page
+
+
+def parse_commands_old(commands: ET.Element) -> list[dict]:
+    out = []
+    for ec in commands:
+        cmd = parse_command_old(ec)
+        if cmd:
+            out.append(cmd)
+    return out
+
+
+def parse_command_old(command: ET.Element) -> dict:
+    out_cmd = {}
+    out_cmd["code"] = int(getv(command, "code"))
+
+    indent = int(getv(command, "indent"))
+    if indent != 0:
+        out_cmd["indent"] = indent
+
+    params = [int(x) for x in getv(command, "parameters").split()]
+    if params:
+        out_cmd["params"] = params
+
+    return out_cmd
 
 
 def do_os16(args: Namespace) -> None:
@@ -260,7 +403,7 @@ def do_wme(args: Namespace) -> None:
     out_dir = Path(args.output)
     os.makedirs(out_dir, exist_ok=True)
 
-    # load map names
+    # region load map names
     logger.info("loading map names")
     map_names: dict[int, str] = {}
     with open(in_dir / "oneshot_map_names.json") as file:
@@ -271,8 +414,9 @@ def do_wme(args: Namespace) -> None:
             map_names[id_] = name
             logger.debug(f"loaded map info for {name} ({id_})")
         del obj
+    # endregion
 
-    # load common events
+    # region load common events
     logger.info("loading common events")
     with open(in_dir / "oneshot_common_events.json") as file:
         obj: dict = json.load(file)
@@ -281,8 +425,9 @@ def do_wme(args: Namespace) -> None:
         with open(out_dir / "common.json", "w") as file:
             save(events, file, args.pretty)
             logger.debug("saved common events")
+    # endregion
 
-    # process maps
+    # region process maps
     logger.info("processing maps")
     for p in (in_dir / "maps").iterdir():
         if not p.stem.startswith("events_map"):
@@ -300,6 +445,7 @@ def do_wme(args: Namespace) -> None:
                 logger.debug(f"saving map {map_name}")
                 out = {"name": map_name, "events": events}
                 save(out, file, args.pretty)
+    # endregion
 
     logger.info("done processing WME")
 
