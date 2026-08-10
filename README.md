@@ -13,5 +13,5 @@ Allows browsing of events in *OneShot 2014*, *OneShot 2016*, and *OneShot: World
 
 # Preprocessing
 
-1. Extract game data ([liblcf](https://github.com/EasyRPG/liblcf) for OS14, [rpgtool](https://github.com/melody-rs/rpgtool) for OS16, WME has the data in its game directory).
+1. Extract game data ([EasyRPG Tools](https://easyrpg.org/tools/) for OS14, [rpgtool](https://github.com/melody-rs/rpgtool) for OS16, WME has the data in its game directory).
 1. Run `oneshot_dlg.py` (works with Python 3.13, *maybe* lower), specifying the game edition (`-g os14`) and the path to the extracted data. See usage for additional options.
