@@ -88,7 +88,7 @@ def getflag(elem: ET.Element, tag: str) -> bool:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("directory")
-    parser.add_argument("-g", "--game", choices=["os14", "os16", "wme"], required=True)
+    parser.add_argument("-e", "--engine", choices=["2k3", "xp", "wme"], required=True)
     parser.add_argument(
         "-l",
         "--log-level",
@@ -102,16 +102,16 @@ def main() -> None:
     args = parser.parse_args()
     logging.basicConfig(level=args.log_level.upper())
 
-    match args.game:
-        case "os14":
-            do_os14(args)
-        case "os16":
-            do_os16(args)
+    match args.engine.lower():
+        case "2k3":
+            do_2k3(args)
+        case "xp":
+            do_xp(args)
         case "wme":
             do_wme(args)
 
 
-def do_os14(args: Namespace) -> None:
+def do_2k3(args: Namespace) -> None:
     in_path = Path(args.directory)
     out_path = Path(args.output)
     os.makedirs(out_path, exist_ok=True)
@@ -123,6 +123,10 @@ def do_os14(args: Namespace) -> None:
     for map_info in emt.getroot()[0][0]:
         map_names[int(geta(map_info, "id"))] = getv(map_info, "name")
     del emt
+
+    if not args.dry_run:
+        with(open(out_path / "maps.json", "w")) as file:
+            save(map_names, file, args.pretty)
     # endregion
 
     # region process common events
@@ -173,7 +177,7 @@ def do_os14(args: Namespace) -> None:
                 out_pages.append(out_page)
             out_event["pages"] = out_pages
             out_events.append(out_event)
-        out = {"name": map_name, "events": out_events}
+        out = {"name": map_name, "id": map_id,  "events": out_events}
 
         if not args.dry_run:
             with open(out_path / f"map{map_id}.json", "w") as file:
@@ -235,46 +239,56 @@ def parse_command_old(command: ET.Element) -> dict:
     return out_cmd
 
 
-def do_os16(args: Namespace) -> None:
+def do_xp(args: Namespace) -> None:
     in_path = Path(args.directory)
     out_path = Path(args.output)
     os.makedirs(out_path, exist_ok=True)
 
-    # load map infos
+    # region load map infos
     with open(in_path / "MapInfos.json") as file:
         map_infos: dict = json.load(file)
         logger.info("loaded map infos")
 
-    # process files
+    map_names: dict[int, str] = {}
+    for map_ in map_infos:
+        map_names[int(map_)] = map_infos[map_]["name"]
+    
+    if not args.dry_run:
+        with open(out_path / "maps.json", "w") as file:
+            logger.debug("saving map names")
+            save(map_names, file, args.pretty)
+    # endregion
+
+    # region process files
     for p in in_path.iterdir():
         if p.suffix != ".json":
             logger.debug(f"non-JSON file, skipping: {p}")
             continue
 
         if p.stem == "CommonEvents":
-            logger.debug("processing common events")
+            logger.info("processing common events")
             with open(p) as file:
                 root = json.load(file)
 
-            events = process_common_events_new(root)
+            events = process_common_events_xp(root)
 
             if not args.dry_run:
                 with open(out_path / "common.json", "w") as file:
                     save(events, file, args.pretty)
 
         elif p.stem != "MapInfos" and p.stem.startswith("Map"):
-            map_num = int(p.stem[-3:])
-            map_name = map_infos[str(map_num)]["name"]
+            map_id = int(p.stem[-3:])
+            map_name = map_infos[str(map_id)]["name"]
             logger.debug(f"processing map {map_name} ({p.name})")
 
             with open(p) as file:
                 root = json.load(file)
 
-            events = process_map_new(root)
-            map_ = {"name": map_name, "events": events}
+            events = process_map_xp(root)
+            map_ = {"name": map_name, "id": map_id, "events": events}
 
             if not args.dry_run:
-                with open(out_path / f"map{map_num}.json", "w") as file:
+                with open(out_path / f"map{map_id}.json", "w") as file:
                     save(map_, file, args.pretty)
 
         elif p.stem == "xScripts":
@@ -292,26 +306,28 @@ def do_os16(args: Namespace) -> None:
                     with open(scripts_path / f"{name}.rb", "w") as file:
                         logger.debug(f"writing script {name}")
                         file.write(src)
+    #endregion
 
-    logger.info("done processing OS16")
+    logger.info("done processing XP")
 
 
-def process_common_events_new(events: list) -> list[dict]:
+def process_common_events_xp(events: list) -> list[dict]:
     result = []
     for event in events:
         if event is None:  # skip the first null
             continue
 
         out = {}
-        copy(event, out, "id", "name", "trigger", "switch_id")
-        commands = parse_commands_new(event["list"])
+        copy(event, out, "id", "name", "trigger")
+        out["switchId"] = event["switch_id"]
+        commands = parse_commands_xp(event["list"])
         out["commands"] = commands
         result.append(out)
 
     return result
 
 
-def parse_commands_new(commands: list[dict]) -> list[dict]:
+def parse_commands_xp(commands: list[dict]) -> list[dict]:
     result = []
     i = 0
     while i < len(commands):
@@ -356,7 +372,7 @@ def parse_commands_new(commands: list[dict]) -> list[dict]:
     return result
 
 
-def process_map_new(map_: dict) -> list[dict]:
+def process_map_xp(map_: dict) -> list[dict]:
     result = []
     events = map_["events"]
     if isinstance(events, dict):  # OS16
@@ -386,7 +402,7 @@ def process_map_new(map_: dict) -> list[dict]:
                 if condition:
                     page_out["condition"] = condition
 
-            commands = parse_commands_new(page["list"])
+            commands = parse_commands_xp(page["list"])
             page_out["list"] = commands
             pages.append(page_out)
 
@@ -409,18 +425,23 @@ def do_wme(args: Namespace) -> None:
     with open(in_dir / "oneshot_map_names.json") as file:
         obj: dict = json.load(file)
         for o in obj["map_names"]:
-            id_ = o["id"]
+            id_ = int(o["id"])
             name = o["name"]
             map_names[id_] = name
             logger.debug(f"loaded map info for {name} ({id_})")
         del obj
+
+    if not args.dry_run:
+        with open(out_dir / "maps.json", "w") as file:
+            logger.debug("saving map names")
+            save(map_names, file, args.pretty)
     # endregion
 
     # region load common events
     logger.info("loading common events")
     with open(in_dir / "oneshot_common_events.json") as file:
         obj: dict = json.load(file)
-    events = process_common_events_new(obj["common_events"])
+    events = process_common_events_xp(obj["common_events"])
     if not args.dry_run:
         with open(out_dir / "common.json", "w") as file:
             save(events, file, args.pretty)
@@ -433,17 +454,17 @@ def do_wme(args: Namespace) -> None:
         if not p.stem.startswith("events_map"):
             continue
 
-        map_num = int(p.stem[10:])  # skip "events_map"
-        map_name = map_names[map_num]
-        logger.debug(f"processing {map_name} ({map_num})")
+        map_id = int(p.stem[10:])  # skip "events_map"
+        map_name = map_names[map_id]
+        logger.debug(f"processing {map_name} ({map_id})")
 
         with open(p) as file:
             map_ = json.load(file)
-        events = process_map_new(map_)
+        events = process_map_xp(map_)
         if not args.dry_run:
-            with open(out_dir / f"map{map_num}.json", "w") as file:
+            with open(out_dir / f"map{map_id}.json", "w") as file:
                 logger.debug(f"saving map {map_name}")
-                out = {"name": map_name, "events": events}
+                out = {"name": map_name, "id": map_id, "events": events}
                 save(out, file, args.pretty)
     # endregion
 
