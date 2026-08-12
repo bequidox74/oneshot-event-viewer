@@ -76,13 +76,14 @@ ul {
 }
 
 .page-conditions {
+    display: flex;
+    flex-direction: column;
     border: 1px solid black;
 }
 
 .page > * {
     padding: var(--page-padding);
     margin: 0.5em;
-    margin-left: var(--nested-margin);
 }
 
 .command {

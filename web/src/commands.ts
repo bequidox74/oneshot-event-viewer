@@ -1,4 +1,4 @@
-import type { EventCommand } from "./types";
+import type { EventCommand, EventPage, PageCondition } from "./types";
 
 const CODE_TO_COMPARISON: { [key: number]: string } = {
     0: "==",
@@ -149,7 +149,57 @@ function makeEdMessageBox(code: string): HTMLElement {
     return root;
 }
 
-export function emitCommands(commands: EventCommand[]): HTMLElement {
+export function emitPage(page: EventPage, index: number): HTMLElement {
+    const pageRoot = document.createElement("div");
+    pageRoot.innerText = "Page " + index;
+    pageRoot.classList.add("page");
+
+    if (page.condition) {
+        pageRoot.appendChild(emitPageCondition(page.condition));
+    }
+
+    const commands = emitCommands(page.list);
+    pageRoot.appendChild(commands);
+
+    return pageRoot;
+}
+
+function emitSwitch(index: number): HTMLElement {
+    const switchRoot = document.createElement("li");
+    switchRoot.innerHTML = `If <span class="variable">Switch ${index}</span> is <span class="on">ON</span>`;
+    return switchRoot;
+}
+
+function emitPageCondition(conds: PageCondition): HTMLElement {
+    const myRoot = document.createElement("ul");
+    myRoot.classList.add("page-conditions");
+
+    if (conds.switch1) {
+        myRoot.appendChild(emitSwitch(conds.switch1));
+    }
+
+    if (conds.switch2) {
+        myRoot.appendChild(emitSwitch(conds.switch2));
+    }
+
+    if (conds.var) {
+        const v = document.createElement("li");
+        v.innerHTML = `If <span class="variable">Variable ${conds.var}</span> is >= ${conds.value}`;
+        myRoot.appendChild(v);
+    }
+
+    if (conds.selfSwitch) {
+        const li = document.createElement("li");
+        const ss = conds.selfSwitch;
+        li.innerHTML = `If <span class="variable">Self Switch <b>${ss}</b></span> is <span class="on">ON</span>`;
+        myRoot.appendChild(li);
+    }
+
+    return myRoot;
+}
+
+
+function emitCommands(commands: EventCommand[]): HTMLElement {
     const root = document.createElement("ul");
 
     const stack: HTMLElement[] = [];
@@ -259,6 +309,7 @@ function handleEscapes(text: string): HTMLElement[] {
                 break;
         }
         const restString = part.substring(rest);
+        if (!restString.trim()) continue;
         if (restString) elements.push(makeElementFromText("span", restString));
     }
     return elements;
