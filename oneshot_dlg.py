@@ -122,6 +122,7 @@ def do_2k3(args: Namespace) -> None:
     emt = ET.parse(in_path / "RPG_RT.emt")
     for map_info in emt.getroot()[0][0]:
         map_names[int(geta(map_info, "id"))] = getv(map_info, "name")
+    del map_names[0]  # exclude ID 0 because it's not really a map
     del emt
 
     if not args.dry_run:
@@ -348,7 +349,11 @@ def parse_commands_xp(commands: list[dict]) -> list[dict]:
                 while (next_ := at(commands, i + 1)) and next_["code"] == 401:
                     text += " " + getstr(next_["parameters"], 0)  # type: ignore
                     i += 1
-                out["params"] = [text]
+
+                if not text:
+                    out = None  # skip empty dialogue events
+                else:
+                    out["params"] = [text]
             case 355:
                 script = getstr(params, 0) + "\n"
                 # merge additional script lines

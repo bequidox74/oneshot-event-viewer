@@ -14,6 +14,7 @@ type Map = {
 
 const urlParams = new URLSearchParams(window.location.search);
 const gameId: string = urlParams.get("game")!;
+const isDialogue: boolean = urlParams.get("mode") === "dialogue";
 
 const gameInfos: Record<string, GameInfo> = {
     "os14": {
@@ -55,34 +56,24 @@ for (const mapInfo of Object.entries(mapNames)) {
 maps.sort((a, b) => a.id - b.id);
 
 
-// Populate common events and maps
+// Build navigation
 
-const eventList = document.getElementById("eventlist");
+const navigation = document.getElementById("navigation");
 
-const commonEvents = document.createElement("li");
-commonEvents.id = "cevents";
-commonEvents.innerText = "Common Events"
-eventList?.appendChild(commonEvents);
-
-const promises = [];
-
-promises.push(fetch(`/dialogue/${gameId}/common.json`)
-    .then(res => res.json())
-    .then(json => buildTree(json)));
-
-for (const map of maps) {
-    const mapEvents = document.createElement("li");
-    mapEvents.id = `map${map.id}`;
-    mapEvents.innerText = map.name + " (" + map.id + ")"
-    eventList?.appendChild(mapEvents);
-
-    promises.push(fetch(`/dialogue/${gameId}/map${map.id}.json`)
-        .then(res => res.json())
-        .then(json => {
-            buildTree(json);
-        }));
+function addNavItem(text: string, anchor: string) {
+    const item = document.createElement("li");
+    const a = document.createElement("a");
+    a.innerText = text;
+    a.setAttribute("href", window.location.href + "#" + anchor);
+    item.appendChild(a);
+    navigation?.appendChild(item);
 }
 
-Promise.all(promises).then(() => {
-    window.document.title = gameInfo.name + " Dialogue";
-});
+addNavItem("Common Events", "cevents");
+for (const map of maps) {
+    const name = map.name ? map.name : map.id.toString().padStart(4, "0");
+    addNavItem(name, `map${map.id}`);
+}
+
+
+// Build content
