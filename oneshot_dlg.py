@@ -354,7 +354,7 @@ def parse_commands_xp(commands: list[dict]) -> list[dict]:
                     out = None  # skip empty dialogue events
                 else:
                     out["params"] = [text]
-            case 355:
+            case 355:  # Script
                 script = getstr(params, 0) + "\n"
                 # merge additional script lines
                 while (next_ := at(commands, i + 1)) and next_["code"] == 655:

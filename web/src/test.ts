@@ -1,8 +1,8 @@
 import { emitCommands as emitCommands } from "./commands.ts";
-import type { MapDefinition, EventPage, PageCondition, EventCommand } from "./types.ts";
+import type { MapDefinition, EventPage, PageCondition } from "./types.ts";
 
 const root = document.getElementById("content")!;
-const mapPath = "/dialogue/os16/map14.json";
+const mapPath = "/dialogue/os16/map15.json";
 const mapDef: MapDefinition = await fetch(mapPath).then(res => res.json());
 
 (mapDef.events as [any]).sort((a, b) => a.id - b.id);

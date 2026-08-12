@@ -14,18 +14,18 @@ export type Event = {
 export type MapEvent = Event & {
     x: number,
     y: number,
-    pages: [EventPage],
+    pages: EventPage[],
 }
 
 export type CommonEvent = Event & {
     trigger: number,
     switchId: number,
-    commands: [EventCommand],
+    commands: EventCommand[],
 }
 
 export type EventPage = {
     condition: PageCondition,
-    list: [EventCommand],
+    list: EventCommand[],
 }
 
 export type PageCondition = {
@@ -39,5 +39,5 @@ export type PageCondition = {
 export type EventCommand = {
     code: number,
     indent: number | undefined,
-    params: [string | number | any],
+    params: any[],
 }

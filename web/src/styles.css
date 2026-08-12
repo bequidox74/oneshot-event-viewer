@@ -23,6 +23,12 @@ ul {
     list-style: none;
 }
 
+#content {
+    /* max-width: 40%; */
+    width: 40%;
+    margin: auto;
+}
+
 .subtle {
     color: gray;
 }
@@ -32,16 +38,30 @@ ul {
     color: white;
     border-radius: 4px;
     padding: 4px;
+    padding-top: 2px;
+    padding-bottom: 2px;
     display: inline-block;
     font-weight: bold;
 }
 
 .off {
-    color: red;
+    background-color: red;
+    color: white;
+    border-radius: 4px;
+    padding: 4px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    display: inline-block;
+    font-weight: bold;
 }
 
 .variable {
-    font-style: italic;
+    display: inline-block;
+    font-family: monospace;
+    background-color: #323232;
+    padding: 4px;
+    border-radius: 4px;
+    font-size: 110%;
 }
 
 .event > * {
