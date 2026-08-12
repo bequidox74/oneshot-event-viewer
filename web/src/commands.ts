@@ -90,6 +90,65 @@ function makeChangePortrait(face: string): HTMLElement {
     return root;
 }
 
+function makeEdMessageBox(code: string): HTMLElement {
+    const root = document.createElement("div");
+    root.classList.add("dialogue-box");
+    root.style = "display: block";
+
+    const box = document.createElement("div");
+    box.classList.add("ed-box");
+    
+    const title = document.createElement("div");
+    title.classList.add("ed-title");
+
+    const boxInner = document.createElement("div");
+    boxInner.classList.add("ed-inner");
+    
+    const condition = makeElementFromHtml("span", `If <span class="variable">${code}</span>:`);
+    condition.style = "text-align: left";
+
+    const paren = code.indexOf("(");
+    const type = code.substring(7, paren);
+    let buttonLabels: string[] = [];
+    switch (type) {
+        case "info":
+        case "err":
+            buttonLabels = ["Ok"];
+            break;
+        case "yesno":
+            root.title = "If Yes";
+            buttonLabels = ["Yes", "No"]
+            break;
+    }
+    
+    let text = code.substring(paren + 2, code.length - 2);
+    let span = document.createElement("span");
+    text = text.replaceAll("\\\\p", getPlayerName());
+    if (text.startsWith(" ")) {
+        span.classList.add("center-text");
+    }
+    span.textContent = text;
+    
+    const buttons = document.createElement("div");
+    buttons.classList.add("ed-buttons");
+    for (const label of buttonLabels) {
+        const button = document.createElement("div");
+        button.classList.add("ed-button");
+        button.textContent = label;
+        buttons.appendChild(button);
+    }
+
+    box.appendChild(title);
+    box.append(boxInner);
+
+    boxInner.appendChild(span);
+    boxInner.appendChild(buttons);
+    
+    root.appendChild(condition);
+    root.appendChild(box);
+    return root;
+}
+
 export function emitCommands(commands: EventCommand[]): HTMLElement {
     const root = document.createElement("ul");
 
@@ -146,20 +205,7 @@ function emitCommand(command: EventCommand): HTMLElement {
     return li;
 }
 
-function emitShowText(command: EventCommand): HTMLElement {
-    let text: string = command.params[0];
-    const result = document.createElement("div");
-    result.classList.add("dialogue-box");
-
-    if (text.startsWith("@")) {
-        const speakerEnd = text.indexOf(" ");
-        const speaker = text.substring(1, speakerEnd);
-        const portrait = makePortrait(speaker);
-        text = text.substring(speakerEnd);
-        result.appendChild(portrait);
-    }
-
-    const content = document.createElement("span");
+function handleEscapes(text: string): HTMLElement[] {
     const parts = text.split("\\");
     const elements: HTMLElement[] = [];
     elements.push(makeElementFromText("span", parts[0]));
@@ -215,7 +261,33 @@ function emitShowText(command: EventCommand): HTMLElement {
         const restString = part.substring(rest);
         if (restString) elements.push(makeElementFromText("span", restString));
     }
+    return elements;
+}
 
+function emitShowText(command: EventCommand): HTMLElement {
+    let text: string = command.params[0];
+    const result = document.createElement("div");
+    result.classList.add("dialogue-box");
+
+    if (text.startsWith("@")) {
+        const speakerEnd = text.indexOf(" ");
+        const speaker = text.substring(1, speakerEnd);
+        text = text.substring(speakerEnd);
+        
+        if (speaker !== "ed") {
+            const portrait = makePortrait(speaker);
+            result.appendChild(portrait);
+        } else {
+            result.title = "@ed";
+            result.classList.add("center-text");
+        }
+    } else if (text.startsWith("$")) {
+        result.classList.add("note");
+        text = text.substring(1);
+    }
+
+    const content = document.createElement("span");
+    const elements = handleEscapes(text);
     for (const element of elements) {
         content.appendChild(element);
     }
@@ -225,8 +297,6 @@ function emitShowText(command: EventCommand): HTMLElement {
 }
 
 function emitCondition(command: EventCommand): HTMLElement {
-    const result = document.createElement("div");
-
     // see https://github.com/elizagamedev/mkxp-oneshot/blob/87819a0f6613befaf295eb0d6a09c19e29931e47/scripts/Interpreter_3.rb#L228
     const type = command.params[0] as number;
     switch (type) {
@@ -282,7 +352,11 @@ function emitCondition(command: EventCommand): HTMLElement {
         }
         case 12: { // script
             const code = command.params[1] as string;
-            return makeElementFromHtml("span", `If <span class="variable">${code}</span>:`)
+            if (code.startsWith("EdText")) {
+                return makeEdMessageBox(code);
+            } else {
+                return makeElementFromHtml("span", `If <span class="variable">${code}</span>:`)
+            }
         }
         default: {
             console.log("Unknown condition type: " + type);
