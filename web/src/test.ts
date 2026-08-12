@@ -5,6 +5,7 @@ const root = document.getElementById("content")!;
 const mapPath = "/dialogue/os16/map14.json";
 const mapDef: MapDefinition = await fetch(mapPath).then(res => res.json());
 
+(mapDef.events as [any]).sort((a, b) => a.id - b.id);
 for (const event of mapDef.events) {
     const eventRoot = document.createElement("div");
     eventRoot.classList.add("event");

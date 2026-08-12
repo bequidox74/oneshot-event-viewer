@@ -76,6 +76,23 @@ ul {
     gap: 0.5em;
 }
 
+.portrait-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5em;
+}
+
+.portrait-text {
+    font-size: small;
+}
+
+.portrait {
+    --portrait-size: 96px;
+    width: var(--portrait-size);
+    height: var(--portrait-size);
+}
+
 .inline-command {
     --inline-margin: 0.2em;
     vertical-align: -4px;
@@ -105,6 +122,27 @@ ul {
 
 .change-portrait {
     background-color: dodgerblue;
+}
+
+.popup {
+    position: relative;
+}
+
+.popup > img {
+    position: absolute;
+}
+
+.popup .portrait-container {
+    position: absolute;
+    z-index: 1;
+    background-color: #222;
+    padding: 8px;
+    visibility: hidden;
+    top: -5px;
+}
+
+.popup:hover .portrait-container {
+    visibility: visible;
 }
 
 .color0 {

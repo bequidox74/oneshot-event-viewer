@@ -8,17 +8,31 @@ function getPlayerName(): string {
     return "Player";
 }
 
+function getFacePath(face: string): string {
+    return "/faces/" + face + ".png";
+}
+
 function makeElementText(tag: string, text: string): HTMLElement {
     const result = document.createElement(tag);
     result.textContent = text;
     return result;
 }
 
-function makePortrait(face: string): HTMLImageElement {
-    const result = new Image();
-    result.classList.add("portrait");
-    result.src = `/faces/${face}.png`;
-    return result;
+function makePortrait(face: string): HTMLElement {
+    const container = document.createElement("div");
+    container.classList.add("portrait-container");
+    
+    const name = document.createElement("span");
+    container.classList.add("portrait-text");
+    name.textContent = "@" + face;
+
+    const portrait = new Image();
+    portrait.classList.add("portrait");
+    portrait.src = getFacePath(face);
+    
+    container.appendChild(portrait);
+    container.appendChild(name);
+    return container;
 }
 
 function makePause(): HTMLElement {
@@ -46,11 +60,19 @@ function makeWaitForAction(): HTMLElement {
 }
 
 function makeChangePortrait(face: string): HTMLElement {
+    const root = document.createElement("span");
+    root.classList.add("inline-command");
+    root.classList.add("change-portrait");
+    root.classList.add("popup");
+
     const image = document.createElement("img");
-    image.classList.add("inline-command");
-    image.classList.add("change-portrait");
-    image.title = "Change Portrait";
-    return image;
+
+    const portrait = makePortrait(face);
+    portrait.title = "Change Portrait";
+
+    root.appendChild(image);
+    root.appendChild(portrait);
+    return root;
 }
 
 export function emitCommands(commands: [EventCommand]): HTMLElement {
@@ -140,7 +162,7 @@ function emitShowText(command: EventCommand): HTMLElement {
                 break;
             case "@":
                 const space = part.indexOf(" ");
-                elements.push(makeChangePortrait(part.substring(0, space)));
+                elements.push(makeChangePortrait(part.substring(1, space)));
                 rest = space;
                 break;
             case "p": {
