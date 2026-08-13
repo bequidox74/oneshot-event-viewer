@@ -9,6 +9,15 @@ const CODE_TO_COMPARISON: { [key: number]: string } = {
     5: "!=",
 }
 
+const CODE_TO_VARIABLE_OP: { [key: number]: string } = {
+    0: "=",
+    1: "+=",
+    2: "-=",
+    3: "*=",
+    4: "/=",
+    5: "%=",
+}
+
 function peek<T>(stack: T[]): T | null {
     return stack.length > 0 ? stack[stack.length - 1] : null;
 }
@@ -233,21 +242,34 @@ function emitCommand(command: EventCommand): HTMLElement {
 
     // see https://github.com/elizagamedev/mkxp-oneshot/blob/87819a0f6613befaf295eb0d6a09c19e29931e47/scripts/Interpreter_2.rb#L12
     switch (command.code) {
-        case 101:
+        case 101: // Show Text
             child = emitShowText(command);
             break;
-        case 106:
+        case 106: // Wait
             child = emitWait(command);
             break;
-        case 111:
+        case 111: // If
             child = emitCondition(command);
             break;
-        case 411:
+        case 411: // Else
             child = makeElementFromText("span", "Else:");
+            break;
+        case 121: // Control Switches
+            child = emitControlSwitches(command);
+            break;
+        case 122: // Control Variables
+            child = emitControlVariables(command);
+            break;
+        case 201: // Transfer Player
+            child = emitTransferPlayer(command);
+            break;
+        case 355: // Script
+            const scr = command.params[0];
+            child = makeElementFromHtml("span", `Script: <span class="variable">${scr}</span>`);
             break;
         default:
             child = document.createElement("div");
-            child.textContent = "Command " + command.code;
+            child.textContent = `Command ${command.code}: ${command.params ?? ""}`;
             break;
     }
 
@@ -420,4 +442,111 @@ function emitWait(command: EventCommand): HTMLElement {
     const result = document.createElement("div");
     result.textContent = `Wait ${command.params[0]} frames`;
     return result;
+}
+
+function emitTransferPlayer(command: EventCommand): HTMLElement {
+    const apt = command.params[0] as number == 0;
+    const map = command.params[1] as number;
+    const x = command.params[2] as number;
+    const y = command.params[3] as number;
+    const dir = command.params[4] as number;
+    
+    const parts: string[] = [
+        `Transfer player to `,
+        `Map `,
+        apt ? map.toString() : `<span class="variable">Variable ${map}</span>`,
+        ` with x=`,
+        apt ? x.toString() : `<span class="variable">Variable ${x}</span>`,
+        `, y=`,
+        apt ? y.toString() : `<span class="variable">Variable ${y}</span>`,
+        `, direction=`,
+        apt ? dir.toString() : `<span class="variable">Variable ${dir}</span>`,
+    ];
+    return makeElementFromHtml("span", parts.join(""));
+}
+
+function emitControlSwitches(command: EventCommand): HTMLElement {
+    const from = command.params[0] as number;
+    const to = command.params[1] as number;
+    const on = command.params[2] == 0 ? "on" : "off";
+    const html = `Turn Switches ${from}..${to} <span class=${on}>${on.toUpperCase()}</span>`;
+    return makeElementFromHtml("span", html);
+}
+
+function emitControlVariables(command: EventCommand): HTMLElement {
+    const from = command.params[0] as number;
+    const to = command.params[1] as number;
+    const type = CODE_TO_VARIABLE_OP[command.params[2]];
+    const opType = command.params[3] as number;
+    const op = command.params[4] as number;
+    
+    let value: string;
+    switch (opType) {
+        case 0: // invariable
+            value = op.toString();
+            break;
+        case 1: // variable
+            value = `<span class="variable">Variable ${op}</span>`;
+            break;
+        case 2: // random
+            value = `random value ${op}..${command.params[5]}`;
+            break;
+        case 3: // item
+            value = `# of <span class="variable">Item ${op}</span> carried by player`;
+            break;
+        case 6: { // character
+            let par;
+            switch (command.params[5]) {
+                case 0:
+                    par = "x coordinate";
+                    break;
+                case 1:
+                    par = "y coordinate";
+                    break;
+                case 2:
+                    par = "direction";
+                    break;
+                case 3:
+                    par = "screen x coordinate";
+                    break;
+                case 4:
+                    par = "screen x coordinate";
+                    break;
+                case 5:
+                    par = "terrain tag";
+                    break;
+            }
+            value = `character's ${par}`;
+            break;
+        }
+        case 7: { // other
+            switch (command.params[5]) {
+                case 0:
+                    value = "map id";
+                    break;
+                case 1:
+                    value = "# of party members";
+                    break;
+                case 3:
+                    value = "steps";
+                    break;
+                case 4:
+                    value = "play time";
+                    break;
+                case 5:
+                    value = "timer";
+                    break;
+                case 6:
+                    value = "save count";
+                    break;
+            }
+            break;
+        }
+        default:
+            value = `<i>unknown operand type (${opType})</i>`;
+            break;
+    }
+    
+    const html = `Variables ${from}..${to} ${type} ${value!}`;
+    return makeElementFromHtml("span", html);
 }
