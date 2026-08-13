@@ -2,7 +2,10 @@ import { emitPage } from "./commands.ts";
 import type { MapDefinition } from "./types.ts";
 
 const root = document.getElementById("content")!;
-const mapPath = "/dialogue/os16/map15.json";
+const urlParams = new URLSearchParams(window.location.search);
+const game = urlParams.get("game");
+const map = urlParams.get("map");
+const mapPath = `/dialogue/${game}/map${map}.json`;
 const mapDef: MapDefinition = await fetch(mapPath).then(res => res.json());
 
 (mapDef.events as [any]).sort((a, b) => a.id - b.id);
