@@ -1,4 +1,8 @@
+.vscode/
+
 *.json
 *.rb
 *.7z
 *.xml
+
+!docs/

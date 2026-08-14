@@ -1,0 +1,74 @@
+:root {
+    --color-wme-purple: #9664ff;
+    --color-dialogue-bg: #180c1e;
+
+    --size-portrait: 96px;
+    --item-gap: 0.5em;
+}
+
+@font-face {
+    font-family: 'Terminus';
+    src: url("/fonts/Terminus.ttf");
+}
+
+body {
+    background-color: black;
+    color: white;
+
+    font-family: 'Terminus', sans-serif;
+    font-size: 1.2rem;
+}
+
+ul {
+    list-style: none;
+    padding-left: 0;
+}
+ul ul {
+    padding-left: 1em;
+}
+li {
+    list-style-type: none;
+    margin-top: var(--item-gap);
+    margin-bottom: var(--item-gap);
+}
+
+.border {
+    border: 2px solid var(--color-wme-purple);
+}
+
+.page {
+    padding: 1em;
+}
+
+.dialogue-box {
+    --color-border-dialogue: #ff921e;
+
+    display: flex;
+    flex-direction: row;
+    gap: 1em;
+    padding: var(--item-gap);
+    
+    max-width: 600px;
+
+    border: 4px solid var(--color-border-dialogue);
+    border-radius: 4px;
+    background-color: var(--color-dialogue-bg);
+}
+.dialogue-box span {
+    flex-grow: 1;
+    width: max-content;
+}
+
+.portrait-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4em;
+}
+.portrait {
+    width: var(--size-portrait);
+    height: var(--size-portrait);
+}
+.portrait-text {
+    font-size: medium;
+}
