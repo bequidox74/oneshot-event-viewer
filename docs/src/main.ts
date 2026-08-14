@@ -31,5 +31,5 @@ if (!noCommon) {
     content.appendChild(makeCommonEvents(commonEvents));
 }
 for (const map of maps) {
-    content.appendChild(makeMap(map));
+    content.appendChild(makeMap(map, map.id));
 }
