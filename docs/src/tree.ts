@@ -138,16 +138,17 @@ function makeCommandTree(commands: EventCommand[]): HTMLElement {
         const newLevel = command.indent ?? 0;
         const oldLevel = stack.length;
 
-        if (newLevel < oldLevel) stack.pop();
+        if (newLevel <= oldLevel) stack.pop();
         else if (newLevel > oldLevel) {
             const newRoot = createRoot();
-            const wrapped = wrapWithLi(newRoot);
+            const wrapped = newRoot;
             peek().appendChild(wrapped);
             stack.push(newRoot);
         }
 
         const wrapped = wrapWithLi(makeCommand(command));
         peek().appendChild(wrapped);
+        stack.push(wrapped);
     }
 
     return root;
