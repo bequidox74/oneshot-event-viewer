@@ -1,0 +1,1 @@
+{"name":"basement after sun","id":185,"events":[{"id":1,"name":"set journal","x":26,"y":9,"pages":[{"list":[{"code":355,"params":["Journal.set ''\n"]},{"code":116}]}]},{"id":2,"name":"door","x":12,"y":14,"pages":[{"list":[{"code":250,"params":[0]},{"code":201,"params":[0,183,26,23,4,0]},{"code":250,"params":[0]},{"code":121,"params":[146,146,0]}]}]}]}

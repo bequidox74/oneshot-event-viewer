@@ -1,6 +1,6 @@
 .vscode/
+.vite/
 
-*.json
 *.rb
 *.7z
 *.xml
