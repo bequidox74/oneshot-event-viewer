@@ -66,7 +66,7 @@ export function makeCommonEvents(events: CommonEvents): HTMLElement {
     return root;
 }
 
-function makeCommonEvent(event: CommonEvent): HTMLElement {
+function makeCommonEvent(_event: CommonEvent): HTMLElement {
     const root = document.createElement("li");
     root.classList.add("event");
     return root;
