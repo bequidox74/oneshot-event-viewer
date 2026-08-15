@@ -18,17 +18,25 @@ const CODE_TO_VARIABLE_OP: { [key: number]: string } = {
     5: "%=",
 }
 
+function getVariable(id: number): string {
+    return `Variable ${id}`;
+}
+
+function getItem(id: number): string {
+    return `Item ${id}`;
+}
+
 function textNode(text: string): Node {
     return document.createTextNode(text);
 }
 
-function spanNode(text: string, cls?: string | string[]): HTMLSpanElement {
+function spanNode(text: any, cls?: string | string[]): HTMLSpanElement {
     const span = document.createElement("span");
     if (cls) {
         if (Array.isArray(cls)) span.classList.add(...cls);
         else span.classList.add(cls);
     }
-    span.textContent = text;
+    span.textContent = text.toString();
     return span;
 }
 
@@ -36,7 +44,22 @@ function characterNode(char: number): Node {
     return spanNode(`Character ${char}`, "character");
 }
 
+function itemNode(id: number): Node {
+    return spanNode(getItem(id), "item");
+}
+
+function varValueNode(type: number, operand: number): Node {
+    const inv = type == 0;
+    return spanNode(inv ? operand.toString() : getVariable(operand), inv ? "value" : "variable");
+}
+
+function actorNode(id: number): Node {
+    return spanNode(`Actor ${id}`, "actor");
+}
+
 export function makeCommand(command: EventCommand): Node | Node[] {
+    // see https://github.com/elizagamedev/mkxp-oneshot/blob/master/scripts/Interpreter_2.rb
+    const params = command.params;
     switch (command.code) {
         case 101:
             return makeDialogueBox(command);
@@ -54,24 +77,77 @@ export function makeCommand(command: EventCommand): Node | Node[] {
         }
         case 102:
             return makeShowChoices(command);
+        case 103: // Input Number
+            return [
+                textNode("Input Number into "),
+                spanNode(getVariable(params[0])),
+                textNode(" with max digits "),
+                spanNode(getVariable(params[1])),
+            ];
         case 104:
             return makeChangeTextOptions(command);
+        case 105: // Button Input Processing
+            return [
+                textNode("Button Input Processing for button "),
+                spanNode(params[0], "value"),
+            ];
         case 111:
             return makeCondition(command);
         case 112:
             return document.createTextNode("Loop");
         case 113:
             return document.createTextNode("Break Loop");
+        case 115:
+            return textNode("Exit Event Processing");
         case 116:
             return document.createTextNode("Erase Event");
         case 117:
             return makeCallCommonEvent(command);
+        case 118: // Label
+            return [
+                textNode('Label "'),
+                spanNode(params[0], "value"),
+                textNode('"'),
+            ];
+        case 119: // Jump to Label
+            return [
+                textNode('Jump to Label "'),
+                spanNode(params[0], "value"),
+                textNode('"'),
+            ];
         case 121:
             return makeControlSwitches(command);
         case 122:
             return makeControlVariables(command);
         case 123:
             return makeControlSelfSwitch(command);
+        case 126: // Change Items
+            return makeChangeItems(command);
+        case 129: { // Change Party Member
+            const add = params[1] == 0;
+            const result = [
+                textNode(add ? "Add " : "Remove "),
+                actorNode(params[0]),
+                textNode(add ? " to party" : " from party"),
+            ];
+            if (add) {
+                result.push(
+                    textNode(params[2] == 1 ? " with" : " without"),
+                    textNode(" setup"),
+                );
+            }
+            return result;
+        }
+        case 131: // Change Windowskin
+            return [
+                textNode('Change Windowskin to "'),
+                spanNode(params[0], "value"),
+                textNode('"'),
+            ];
+        case 201:
+            return makeTransferPlayer(command);
+        case 202: 
+            return makeSetEventLocation(command);
         case 203:
             return makeScrollMap(command);
         case 207:
@@ -80,20 +156,87 @@ export function makeCommand(command: EventCommand): Node | Node[] {
             return makeSetMoveRoute(command);
         case 210:
             return document.createTextNode("Wait for Move's Completion");
+        case 221:
+            return textNode("Prepare for Transition");
+        case 222: // Execute Transition
+            return [
+                textNode('Execute Transition "'),
+                spanNode(params[0], "value"),
+                textNode('"'),
+            ];
+        case 223: // Change Screen Color Tone
+            return [
+                textNode("Change Screen Color Tone to "),
+                spanNode(params[0], "value"),
+                textNode(" over "),
+                spanNode(params[1], "value"),
+                textNode(" frames"),
+            ];
+        case 224: // Screen Flash
+            return [
+                textNode("Start Screen Flash to color "),
+                spanNode(params[0], "value"),
+                textNode(" over "),
+                spanNode(params[1], "value"),
+                textNode(" frames"),
+            ];
+        case 225: // Screen Shake
+            return [
+                textNode("Start Screen Shake, power "),
+                spanNode(params[0], "value"),
+                textNode(", speed "),
+                spanNode(params[1], "value"),
+                textNode(", duration "),
+                spanNode(params[2], "value"),
+                textNode(" frames"),
+            ];
         case 231:
-            return makeShowImage(command);
+            return makeShowPicture(command);
         case 232:
-            return makeMoveImage(command);
+            return makeMovePicture(command);
+        case 234: // Change Picture Color Tone
+            return [
+                textNode("Change Picture "),
+                spanNode(params[0], "value"),
+                textNode("'s tone to "),
+                spanNode(params[1], "value"),
+                textNode(" over "),
+                spanNode(params[2], "value"),
+                textNode(" frames"),
+            ];
+        case 235:
+            return makeErasePicture(command);
         case 241:
             return makePlayBgm(command);
         case 242:
             return makeFadeOutBgm(command);
+        case 245:
+            return makePlayBgs(command);
+        case 246:
+            return makeFadeOutBgs(command);
+        case 247:
+            return textNode("Memorize BG Music/Sound");
+        case 248:
+            return textNode("Restore BG Music/Sound");
+        case 249:
+            return makePlayMe(command);
         case 250:
             return makePlaySe(command);
+        case 322:
+            return [
+                textNode("Change Actor Graphic of "),
+                actorNode(params[0]),
+                textNode(' to "'),
+                spanNode(params[1], "value"),
+                textNode('", hue '),
+                spanNode(params[2], "value"),
+            ];
         case 355:
             return makeScript(command);
         case 402:
             return makeWhenChoice(command);
+        case 403:
+            return textNode("Cancel Choice");
         case 411:
             return document.createTextNode("Else:");
         case 413:
@@ -410,7 +553,7 @@ function makeScript(command: EventCommand): Node[] {
 function makePlayBgm(command: EventCommand): Node[] {
     const audioFile = command.params[0].AudioFile as AudioFile;
     return [
-        textNode('Play music "'),
+        textNode('Play BG music "'),
         spanNode(audioFile.name, "value"),
         textNode('", volume '),
         spanNode(audioFile.volume?.toString() ?? 1, "value"),
@@ -420,22 +563,49 @@ function makePlayBgm(command: EventCommand): Node[] {
 }
 
 function makeFadeOutBgm(command: EventCommand): Node[] {
-    const result: Node[] = [];
-    result.push(document.createTextNode("Fade out music over "));
+    return [
+        textNode("Fade Out Bacgkround Music over "),
+        spanNode(command.params[0], "value"),
+        textNode(" seconds"),
+    ];
+}
 
-    const valueSpan = document.createElement("span");
-    valueSpan.classList.add("value");
-    valueSpan.textContent = command.params[0];
-    result.push(valueSpan);
+function makePlayBgs(command: EventCommand): Node[] {
+    const audioFile = command.params[0].AudioFile as AudioFile;
+    return [
+        textNode('Play background sound '),
+        spanNode(audioFile.name, "value"),
+        textNode('", volume '),
+        spanNode(audioFile.volume?.toString() ?? 1, "value"),
+        textNode(", pitch "),
+        spanNode(audioFile.pitch?.toString() ?? 1, "value"),
+    ];
+}
 
-    result.push(document.createTextNode(" seconds"));
-    return result;
+function makeFadeOutBgs(command: EventCommand): Node[] {
+    return [
+        textNode("Fade Out Bacgkround Sound over "),
+        spanNode(command.params[0], "value"),
+        textNode(" seconds"),
+    ];
 }
 
 function makePlaySe(command: EventCommand): Node[] {
     const audioFile = command.params[0].AudioFile as AudioFile;
     return [
         textNode('Play sound effect "'),
+        spanNode(audioFile.name, "value"),
+        textNode('", volume '),
+        spanNode(audioFile.volume?.toString() ?? 1, "value"),
+        textNode(", pitch "),
+        spanNode(audioFile.pitch?.toString() ?? 1, "value"),
+    ];
+}
+
+function makePlayMe(command: EventCommand): Node[] {
+    const audioFile = command.params[0].AudioFile as AudioFile;
+    return [
+        textNode('Play music effect "'),
         spanNode(audioFile.name, "value"),
         textNode('", volume '),
         spanNode(audioFile.volume?.toString() ?? 1, "value"),
@@ -615,7 +785,7 @@ function makeCallCommonEvent(command: EventCommand): Node[] {
     ];
 }
 
-function makeShowImage(command: EventCommand): Node[] {
+function makeShowPicture(command: EventCommand): Node[] {
     const id = command.params[0] as number;
     const name = command.params[1] as string;
     const origin = command.params[2] as number;
@@ -631,7 +801,7 @@ function makeShowImage(command: EventCommand): Node[] {
     const yNode = spanNode(literal ? y.toString() : `Variable ${y}`, literal ? "value" : "variable");
 
     return [
-        textNode("Show Image "),
+        textNode("Show Picture "),
         spanNode(id.toString(), "value"),
         textNode(' "'),
         spanNode(name, "value"),
@@ -652,7 +822,7 @@ function makeShowImage(command: EventCommand): Node[] {
     ];
 }
 
-function makeMoveImage(command: EventCommand): Node[] {
+function makeMovePicture(command: EventCommand): Node[] {
     const id = command.params[0] as number;
     const duration = command.params[1] as string;
     const origin = command.params[2] as number;
@@ -668,7 +838,7 @@ function makeMoveImage(command: EventCommand): Node[] {
     const yNode = spanNode(literal ? y.toString() : `Variable ${y}`, literal ? "value" : "variable");
 
     return [
-        textNode("Move Image "),
+        textNode("Move Picture "),
         spanNode(id.toString(), "value"),
         textNode(' over '),
         spanNode(duration, "value"),
@@ -689,6 +859,13 @@ function makeMoveImage(command: EventCommand): Node[] {
     ];
 }
 
+function makeErasePicture(command: EventCommand): Node[] {
+    return [
+        textNode("Erase Picture "),
+        spanNode(command.params[0], "value"),
+    ];
+}
+
 function makeChangeTextOptions(command: EventCommand): Node[] {
     return [
         textNode("Change Text Options: position = "),
@@ -696,6 +873,61 @@ function makeChangeTextOptions(command: EventCommand): Node[] {
         textNode(", frame = "),
         spanNode(command.params[1], "value"),
     ];
+}
+
+function makeChangeItems(command: EventCommand): Node[] {
+    const item = command.params[0] as number;
+    const operation = command.params[1] as number;
+    const operandType = command.params[2] as number;
+    const operand = command.params[3] as number;
+    
+    return [
+        textNode(operation ? "Increase" : "Decrease"),
+        textNode(" amount of "),
+        itemNode(item),
+        textNode(" by "),
+        varValueNode(operandType, operand),
+    ];
+}
+
+function makeTransferPlayer(command: EventCommand): Node[] {
+    const type = command.params[0] as number;
+    return [
+        textNode("Transfer Player to map "),
+        varValueNode(type, command.params[1]),
+        textNode(" to ("),
+        varValueNode(type, command.params[2]),
+        textNode(","),
+        varValueNode(type, command.params[3]),
+        textNode("), direction "),
+        varValueNode(type, command.params[4]),
+        textNode(" "),
+        textNode(command.params[5] == 0 ? "with" : "without"),
+        textNode(" fade"),
+    ];
+}
+
+function makeSetEventLocation(command: EventCommand): Node[] {
+    const appointment = command.params[1] as number;
+    if (appointment == 1 || appointment == 2) {
+        return [
+            textNode("Move "),
+            characterNode(command.params[0]),
+            textNode(" to ("),
+            varValueNode(appointment, command.params[1]),
+            textNode(","),
+            varValueNode(appointment, command.params[2]),
+            textNode(")"),
+        ];
+    } else {
+        return [
+            textNode("Swap "),
+            characterNode(command.params[0]),
+            textNode(" and "),
+            characterNode(command.params[2]),
+            textNode("'s locations"),
+        ];
+    }
 }
 
 function makeUnknown(command: EventCommand): HTMLElement {

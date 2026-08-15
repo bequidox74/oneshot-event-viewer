@@ -177,6 +177,13 @@ ul.choices {
     background-color: red;
 }
 
+.ed-speak {
+    border: 2px solid var(--color-wme-purple);
+    font-size: x-large;
+    text-align: center;
+    padding: 0.5em;
+}
+
 .player {
     text-decoration: dotted underline;
 }
