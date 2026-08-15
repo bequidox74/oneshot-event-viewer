@@ -23,19 +23,45 @@
 
 body {
     background-color: black;
+    background-image: url("/background.png");
+    background-attachment: fixed;
+    background-size: cover;
     color: var(--color0);
 
     font-family: 'Terminus', sans-serif;
     font-size: 1.2rem;
 }
+
 #content {
+    background-color: black;
     width: fit-content;
-    min-width: 36em;
-    max-width: 60%;
+    height: 100%;
+
     margin: auto;
+    margin-top: 1em;
+
     padding-left: 4em;
     padding-right: 4em;
+    padding-bottom: 0.3em;
     border: 2px solid var(--color-wme-purple);
+}
+
+#notice {
+    margin-top: 2em;
+    text-align: center;
+    font-size: medium;
+    color: #777;
+}
+
+ul#navigation {
+    list-style: square;
+}
+ul#navigation::marker {
+    background-color: var(--color-wme-purple);
+}
+
+a, a:visited {
+    color: var(--color-wme-purple);
 }
 
 ul {
