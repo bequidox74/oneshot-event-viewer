@@ -41,3 +41,9 @@ export type EventCommand = {
     indent: number | undefined,
     params: any[],
 }
+
+export type AudioFile = {
+    name: string,
+    volume: number,
+    pitch: number,
+}

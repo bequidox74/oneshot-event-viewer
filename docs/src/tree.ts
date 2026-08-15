@@ -107,7 +107,7 @@ function makePage(page: EventPage, index: number): HTMLElement {
         }
 
         root.appendChild(condRoot);
-        root.appendChild(makeCommandTree(page.list));
+        root.appendChild(makeCommandTree(page.list ?? []));
     }
 
     return root;
