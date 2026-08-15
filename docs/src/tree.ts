@@ -97,7 +97,7 @@ function makePage(page: EventPage, index: number): HTMLElement {
         }
         if (cond.var) {
             const swch = document.createElement("li");
-            swch.innerHTML = `If <span class="variable">Variable ${cond.var}</span> is >= ${cond.value}`;
+            swch.innerHTML = `If <span class="variable">Variable ${cond.var}</span> >= <span class="value">${cond.value}</span>`;
             condRoot.appendChild(swch);
         }
         if (cond.selfSwitch) {
@@ -119,9 +119,10 @@ function makeCommandTree(commands: EventCommand[]): HTMLElement {
         return root;
     }
     
-    function wrapWithLi(elem: HTMLElement): HTMLElement {
+    function wrapWithLi(elem: Node | Node[]): HTMLElement {
         const li = document.createElement("li");
-        li.appendChild(elem);
+        if (Array.isArray(elem)) li.append(...elem);
+        else li.append(elem);
         return li;
     }
 
