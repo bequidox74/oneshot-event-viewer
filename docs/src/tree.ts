@@ -4,20 +4,17 @@ import type {
   MapEvent,
   CommonEvent,
 } from "./types";
+import { makeCollapsibleHeading } from "./utils";
 
 export function makeCommonEvents(events: CommonEvents): Node {
   const root = document.createElement("div");
   root.id = "common";
 
-  const details = document.createElement("details");
-  const summary = document.createElement("summary");
-  details.appendChild(summary);
-  details.open = true;
+  const details = makeCollapsibleHeading({
+    level: 1,
+    name: "Common Events",
+  });
   root.appendChild(details);
-
-  const heading = document.createElement("h1");
-  heading.textContent = "Common Events";
-  summary.appendChild(heading);
 
   for (const event of events) {
     details.appendChild(makeEvent(event, root.id));
@@ -30,27 +27,15 @@ export function makeMap(map: MapDefinition): Node {
   const root = document.createElement("div");
   root.id = `map${map.id}`;
 
-  const details = document.createElement("details");
-  const summary = document.createElement("summary");
-  details.appendChild(summary);
-  details.open = true;
+  const details = makeCollapsibleHeading({
+    level: 1,
+    name: map.name,
+    id: map.id,
+  });
   root.appendChild(details);
 
-  const heading = document.createElement("h1");
-
-  const nameSpan = document.createElement("span");
-  nameSpan.textContent = map.name ?? "(unnamed)";
-  if (!map.name) nameSpan.classList.add("subtle");
-
-  const idSpan = document.createElement("span");
-  idSpan.textContent = ` [${map.id}]`;
-  idSpan.classList.add("map-id");
-
-  heading.append(nameSpan, idSpan);
-  summary.appendChild(heading);
-
   for (const event of map.events) {
-    root.appendChild(makeEvent(event, root.id));
+    details.appendChild(makeEvent(event, root.id));
   }
 
   return root;
@@ -60,5 +45,14 @@ function makeEvent(event: CommonEvent | MapEvent, parentId: string): Node {
   const root = document.createElement("div");
   root.id = `${parentId}-e${event.id}`;
   root.classList.add("event");
+
+  const details = makeCollapsibleHeading({
+    level: 2,
+    name: event.name,
+    id: event.id,
+    linkId: parentId,
+  });
+  root.appendChild(details);
+
   return root;
 }

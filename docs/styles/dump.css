@@ -2,7 +2,6 @@
   text-align: center;
 }
 
-
 .clickable {
   color: var(--color-wme-purple);
   cursor: pointer;
@@ -16,6 +15,29 @@ details {
   margin-bottom: 0.5em;
 }
 
-summary > h1 {
+summary > h1,
+summary > h2,
+summary > h3 {
   display: inline;
+}
+summary > h2,
+summary > h3 {
+  font-weight: 400;
+}
+
+#root h2 {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+.event {
+  margin-left: 1.5em;
+}
+
+.parent-link {
+  font-family: monospace;
+  font-size: 0.7em;
+  vertical-align: top;
+  margin-left: 0.2em;
+  margin-right: 0.2em;
 }
