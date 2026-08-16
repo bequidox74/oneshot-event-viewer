@@ -65,15 +65,15 @@ export function makeCommand(command: EventCommand): Node | Node[] {
     case 103: // Input Number
       return [
         document.createTextNode("Input Number into "),
-        createSpanNode(getVariable(params[0] as number)),
-        document.createTextNode(" with max digits "),
-        createSpanNode(getVariable(params[1] as number)),
+        createSpanNode(getVariable(params[0] as number), "variable"),
+        document.createTextNode(" with max digits = "),
+        createSpanNode(getVariable(params[1] as number), "variable"),
       ];
     case 104:
       return makeChangeTextOptions(command);
     case 105: // Button Input Processing
       return [
-        document.createTextNode("Button Input Processing for button "),
+        document.createTextNode("Button Input Processing for button = "),
         createSpanNode(params[0] as string, "value"),
       ];
     case 111:
@@ -268,7 +268,9 @@ function makeDialogueBox(command: EventCommand): HTMLElement {
 
   if (face === "@ed") {
     root.classList.add("ed-speak");
-  } else {
+  } else if (face === "@desktop") {
+    root.classList.add("desktop");
+  } else if (face) {
     const portrait = makePortrait(face);
     root.classList.add("dialogue-box");
     root.appendChild(portrait);
@@ -349,6 +351,18 @@ function parseEscapes(raw: string): Node[] {
           color = parseInt(raw[end + 1]);
           end += 3;
           start = end;
+          break;
+        }
+        case "v": {
+          const index = parseInt(raw[end + 1]);
+          end += 3;
+          start = raw.indexOf("]", start + 1) + 1;
+          result.push(makeInlineVariable(index, color));
+          break;
+        }
+        default: {
+          console.log("Unknown escape sequence: " + c);
+          break;
         }
       }
     } else end++;
@@ -384,6 +398,14 @@ function makeInlinePortraitChange(face: string): HTMLElement {
   root.classList.add("inline", "inline-change");
   root.textContent = "@";
   root.title = face;
+  return root;
+}
+
+function makeInlineVariable(index: number, color: number): HTMLElement {
+  const root = document.createElement("span");
+  root.classList.add("inline", "inline-var", `color${color}`);
+  root.textContent = "v";
+  root.title = `Variable ${index}`;
   return root;
 }
 
