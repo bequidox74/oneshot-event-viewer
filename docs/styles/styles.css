@@ -6,7 +6,7 @@
   --color1: red;
   --color2: lime;
   --color3: yellow;
-  --color4: blue;
+  --color4: dodgerblue;
   --color5: magenta;
   --color6: cyan;
   --color7: gray;
@@ -96,13 +96,4 @@ details > summary {
 
 .subtle {
   color: gray;
-}
-
-.player {
-  text-decoration: dotted underline;
-}
-
-.ed-speak,
-.desktop {
-  border: 2px solid var(--color-wme-purple);
 }

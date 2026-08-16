@@ -155,7 +155,7 @@ export function makeCommand(command: EventCommand): Node | Node[] {
     case 223: // Change Screen Color Tone
       return [
         document.createTextNode("Change Screen Color Tone to "),
-        createSpanNode(params[0] as string, "value"),
+        createSpanNode(JSON.stringify(params[0]), "value"),
         document.createTextNode(" over "),
         createSpanNode(params[1] as string, "value"),
         document.createTextNode(" frames"),
@@ -219,6 +219,8 @@ export function makeCommand(command: EventCommand): Node | Node[] {
         document.createTextNode('", hue '),
         createSpanNode(params[2] as string, "value"),
       ];
+    case 352:
+      return [document.createTextNode("Call Save Screen")];
     case 355:
       return makeScript(command);
     case 402:
@@ -230,7 +232,7 @@ export function makeCommand(command: EventCommand): Node | Node[] {
     case 413:
       return document.createTextNode("Repeat Above");
     default:
-      console.log(`Unknown command code ${command.code}`);
+      console.error(`Unknown command code ${command.code}`);
       return makeUnknown(command);
   }
 }
@@ -261,24 +263,33 @@ function makeDialogueBox(command: EventCommand): HTMLElement {
   let text: string = rawText;
 
   let face: string = "";
+  let note = false;
   if (rawText.startsWith("@")) {
     let space = rawText.indexOf(" ");
     if (space < 0) space = rawText.length;
     face = rawText.substring(0, space);
     text = rawText.substring(space + 1);
+  } else if (rawText.startsWith("$")) {
+    root.classList.add("note");
+    note = true;
+    text = rawText.substring(1);
   }
 
   if (face === "@ed") {
     root.classList.add("ed-speak");
   } else if (face === "@desktop") {
     root.classList.add("desktop");
-  } else if (face) {
-    const portrait = makePortrait(face);
-    root.classList.add("dialogue-box");
-    root.appendChild(portrait);
+  } else if (face === "@credits") {
+    root.classList.add("credits");
+  } else {
+    if (!note) root.classList.add("dialogue-box");
+    if (face) {
+      const portrait = makePortrait(face);
+      root.appendChild(portrait);
+    }
   }
 
-  const content = document.createElement("span");
+  const content = document.createElement("div");
   content.append(...parseEscapes(text));
   root.appendChild(content);
 
@@ -293,17 +304,14 @@ function parseEscapes(raw: string): Node[] {
 
   function flush() {
     const text = raw.substring(start, end);
-    const node =
-      color != 0
-        ? document.createElement("span")
-        : document.createTextNode(text);
+    if (!text) return;
+    const span = document.createElement("span");
+    span.textContent = text;
     if (color != 0) {
-      const span = node as HTMLSpanElement;
       span.classList.add(`color${color}`);
-      span.textContent = text;
     }
     start = end;
-    result.push(node);
+    result.push(span);
   }
 
   while (end < raw.length) {
@@ -362,8 +370,20 @@ function parseEscapes(raw: string): Node[] {
           result.push(makeInlineVariable(index, color));
           break;
         }
+        case "l":
+        case "r": {
+          // these are to complex to handle here. leaving them out for now.
+          // align = (c == "l" ? "left" : "right");
+          result.push(document.createTextNode("\\"));
+          end -= 1;
+          start = end;
+          break;
+        }
         default: {
-          console.log("Unknown escape sequence: " + c);
+          console.error("Unknown escape sequence: " + c);
+          result.push(document.createTextNode("\\"));
+          end -= 1;
+          start = end;
           break;
         }
       }
@@ -378,6 +398,7 @@ function makeInlinePause(): HTMLElement {
   const root = document.createElement("span");
   root.classList.add("inline", "inline-pause");
   root.textContent = ".";
+  root.title = "Short Pause";
   return root;
 }
 
@@ -385,6 +406,7 @@ function makeInlineLongPause(): HTMLElement {
   const root = document.createElement("span");
   root.classList.add("inline", "inline-longpause");
   root.textContent = "|";
+  root.title = "Long Pause";
   return root;
 }
 
@@ -392,6 +414,7 @@ function makeInlineWait(): HTMLElement {
   const root = document.createElement("span");
   root.classList.add("inline", "inline-wait");
   root.textContent = ">";
+  root.title = "Wait for Action";
   return root;
 }
 
@@ -399,7 +422,7 @@ function makeInlinePortraitChange(face: string): HTMLElement {
   const root = document.createElement("span");
   root.classList.add("inline", "inline-change");
   root.textContent = "@";
-  root.title = face;
+  root.title = "Change Portrait to " + face;
   return root;
 }
 
@@ -407,7 +430,7 @@ function makeInlineVariable(index: number, color: number): HTMLElement {
   const root = document.createElement("span");
   root.classList.add("inline", "inline-var", `color${color}`);
   root.textContent = "v";
-  root.title = `Variable ${index}`;
+  root.title = `Value of Variable ${index}`;
   return root;
 }
 
@@ -416,6 +439,7 @@ function makeCondition(command: EventCommand): Node[] {
   const result: Node[] = [];
   result.push(document.createTextNode("If "));
   const type: number = command.params[0];
+  let addColon = true;
   switch (type) {
     case 0: {
       // switch
@@ -529,7 +553,10 @@ function makeCondition(command: EventCommand): Node[] {
       span.textContent = code;
       result.push(span);
 
-      if (code.startsWith("EdText.")) result.push(makeEdText(code));
+      if (code.startsWith("EdText.")) {
+        result.push(makeEdText(code));
+        addColon = false;
+      }
       break;
     }
     default: {
@@ -538,7 +565,7 @@ function makeCondition(command: EventCommand): Node[] {
       break;
     }
   }
-  result.push(document.createTextNode(":"));
+  if (addColon) result.push(document.createTextNode(":"));
   return result;
 }
 
@@ -600,6 +627,18 @@ function makeEdText(code: string): Node {
   const box = document.createElement("div");
   box.classList.add("ed-box");
 
+  const bar = document.createElement("div");
+  bar.classList.add("ed-box-bar");
+  box.appendChild(bar);
+
+  const title = document.createElement("span");
+  title.classList.add("ed-box-ttl");
+  bar.appendChild(title);
+
+  const content = document.createElement("div");
+  content.classList.add("ed-box-cont");
+  box.appendChild(content);
+
   function makeButton(text: string): Node {
     const btn = document.createElement("div");
     btn.classList.add("ed-box-btn");
@@ -615,30 +654,35 @@ function makeEdText(code: string): Node {
 
   const text = code.substring(paren + 2, code.indexOf(")") - 1);
   const parts = parseEscapes(text.replaceAll("\\\\", "\\")); // only used to handle \p
-  const span = document.createElement("span");
-  span.append(...parts);
-  box.appendChild(span);
+  const textNode = document.createElement("div");
+  textNode.classList.add("ed-box-text");
+  textNode.append(...parts);
+  content.appendChild(textNode);
 
   switch (funcName) {
     case "info": {
       box.dataset.type = "info";
+      title.textContent = "Info";
       boxBtns.appendChild(makeButton("Ok"));
       break;
     }
     case "yesno": {
+      box.title = 'If "Yes" is selected';
       box.dataset.type = "yesno";
+      title.textContent = "Question";
       boxBtns.appendChild(makeButton("Yes"));
       boxBtns.appendChild(makeButton("No"));
       break;
     }
-    case "error": {
-      box.dataset.type = "error";
+    case "err": {
+      box.dataset.type = "err";
+      title.textContent = "Error";
       boxBtns.appendChild(makeButton("Ok"));
       break;
     }
   }
 
-  box.appendChild(boxBtns);
+  content.appendChild(boxBtns);
   return box;
 }
 
