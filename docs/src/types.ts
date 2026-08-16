@@ -39,7 +39,8 @@ export type PageCondition = {
 export type EventCommand = {
   code: number;
   indent: number | undefined;
-  params: unknown[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  params: any[];
 };
 
 export type AudioFile = {
