@@ -1,5 +1,5 @@
 import type { AudioFile, EventCommand } from "./types";
-import { spanNode, textNode } from "./utils";
+import { createSpanNode, createTextNode } from "./utils";
 
 const CODE_TO_COMPARISON: { [key: number]: string } = {
     0: "==",
@@ -29,20 +29,20 @@ function getItem(id: number): string {
 
 
 function characterNode(char: number): Node {
-    return spanNode(`Character ${char}`, "character");
+    return createSpanNode(`Character ${char}`, "character");
 }
 
 function itemNode(id: number): Node {
-    return spanNode(getItem(id), "item");
+    return createSpanNode(getItem(id), "item");
 }
 
 function varValueNode(type: number, operand: number): Node {
     const inv = type == 0;
-    return spanNode(inv ? operand.toString() : getVariable(operand), inv ? "value" : "variable");
+    return createSpanNode(inv ? operand.toString() : getVariable(operand), inv ? "value" : "variable");
 }
 
 function actorNode(id: number): Node {
-    return spanNode(`Actor ${id}`, "actor");
+    return createSpanNode(`Actor ${id}`, "actor");
 }
 
 export function makeCommand(command: EventCommand): Node | Node[] {
@@ -67,17 +67,17 @@ export function makeCommand(command: EventCommand): Node | Node[] {
             return makeShowChoices(command);
         case 103: // Input Number
             return [
-                textNode("Input Number into "),
-                spanNode(getVariable(params[0])),
-                textNode(" with max digits "),
-                spanNode(getVariable(params[1])),
+                createTextNode("Input Number into "),
+                createSpanNode(getVariable(params[0])),
+                createTextNode(" with max digits "),
+                createSpanNode(getVariable(params[1])),
             ];
         case 104:
             return makeChangeTextOptions(command);
         case 105: // Button Input Processing
             return [
-                textNode("Button Input Processing for button "),
-                spanNode(params[0], "value"),
+                createTextNode("Button Input Processing for button "),
+                createSpanNode(params[0], "value"),
             ];
         case 111:
             return makeCondition(command);
@@ -86,22 +86,22 @@ export function makeCommand(command: EventCommand): Node | Node[] {
         case 113:
             return document.createTextNode("Break Loop");
         case 115:
-            return textNode("Exit Event Processing");
+            return createTextNode("Exit Event Processing");
         case 116:
             return document.createTextNode("Erase Event");
         case 117:
             return makeCallCommonEvent(command);
         case 118: // Label
             return [
-                textNode('Label "'),
-                spanNode(params[0], "value"),
-                textNode('"'),
+                createTextNode('Label "'),
+                createSpanNode(params[0], "value"),
+                createTextNode('"'),
             ];
         case 119: // Jump to Label
             return [
-                textNode('Jump to Label "'),
-                spanNode(params[0], "value"),
-                textNode('"'),
+                createTextNode('Jump to Label "'),
+                createSpanNode(params[0], "value"),
+                createTextNode('"'),
             ];
         case 121:
             return makeControlSwitches(command);
@@ -114,23 +114,23 @@ export function makeCommand(command: EventCommand): Node | Node[] {
         case 129: { // Change Party Member
             const add = params[1] == 0;
             const result = [
-                textNode(add ? "Add " : "Remove "),
+                createTextNode(add ? "Add " : "Remove "),
                 actorNode(params[0]),
-                textNode(add ? " to party" : " from party"),
+                createTextNode(add ? " to party" : " from party"),
             ];
             if (add) {
                 result.push(
-                    textNode(params[2] == 1 ? " with" : " without"),
-                    textNode(" setup"),
+                    createTextNode(params[2] == 1 ? " with" : " without"),
+                    createTextNode(" setup"),
                 );
             }
             return result;
         }
         case 131: // Change Windowskin
             return [
-                textNode('Change Windowskin to "'),
-                spanNode(params[0], "value"),
-                textNode('"'),
+                createTextNode('Change Windowskin to "'),
+                createSpanNode(params[0], "value"),
+                createTextNode('"'),
             ];
         case 201:
             return makeTransferPlayer(command);
@@ -145,38 +145,38 @@ export function makeCommand(command: EventCommand): Node | Node[] {
         case 210:
             return document.createTextNode("Wait for Move's Completion");
         case 221:
-            return textNode("Prepare for Transition");
+            return createTextNode("Prepare for Transition");
         case 222: // Execute Transition
             return [
-                textNode('Execute Transition "'),
-                spanNode(params[0], "value"),
-                textNode('"'),
+                createTextNode('Execute Transition "'),
+                createSpanNode(params[0], "value"),
+                createTextNode('"'),
             ];
         case 223: // Change Screen Color Tone
             return [
-                textNode("Change Screen Color Tone to "),
-                spanNode(params[0], "value"),
-                textNode(" over "),
-                spanNode(params[1], "value"),
-                textNode(" frames"),
+                createTextNode("Change Screen Color Tone to "),
+                createSpanNode(params[0], "value"),
+                createTextNode(" over "),
+                createSpanNode(params[1], "value"),
+                createTextNode(" frames"),
             ];
         case 224: // Screen Flash
             return [
-                textNode("Start Screen Flash to color "),
-                spanNode(params[0], "value"),
-                textNode(" over "),
-                spanNode(params[1], "value"),
-                textNode(" frames"),
+                createTextNode("Start Screen Flash to color "),
+                createSpanNode(params[0], "value"),
+                createTextNode(" over "),
+                createSpanNode(params[1], "value"),
+                createTextNode(" frames"),
             ];
         case 225: // Screen Shake
             return [
-                textNode("Start Screen Shake, power "),
-                spanNode(params[0], "value"),
-                textNode(", speed "),
-                spanNode(params[1], "value"),
-                textNode(", duration "),
-                spanNode(params[2], "value"),
-                textNode(" frames"),
+                createTextNode("Start Screen Shake, power "),
+                createSpanNode(params[0], "value"),
+                createTextNode(", speed "),
+                createSpanNode(params[1], "value"),
+                createTextNode(", duration "),
+                createSpanNode(params[2], "value"),
+                createTextNode(" frames"),
             ];
         case 231:
             return makeShowPicture(command);
@@ -184,13 +184,13 @@ export function makeCommand(command: EventCommand): Node | Node[] {
             return makeMovePicture(command);
         case 234: // Change Picture Color Tone
             return [
-                textNode("Change Picture "),
-                spanNode(params[0], "value"),
-                textNode("'s tone to "),
-                spanNode(params[1], "value"),
-                textNode(" over "),
-                spanNode(params[2], "value"),
-                textNode(" frames"),
+                createTextNode("Change Picture "),
+                createSpanNode(params[0], "value"),
+                createTextNode("'s tone to "),
+                createSpanNode(params[1], "value"),
+                createTextNode(" over "),
+                createSpanNode(params[2], "value"),
+                createTextNode(" frames"),
             ];
         case 235:
             return makeErasePicture(command);
@@ -203,28 +203,28 @@ export function makeCommand(command: EventCommand): Node | Node[] {
         case 246:
             return makeFadeOutBgs(command);
         case 247:
-            return textNode("Memorize BG Music/Sound");
+            return createTextNode("Memorize BG Music/Sound");
         case 248:
-            return textNode("Restore BG Music/Sound");
+            return createTextNode("Restore BG Music/Sound");
         case 249:
             return makePlayMe(command);
         case 250:
             return makePlaySe(command);
         case 322:
             return [
-                textNode("Change Actor Graphic of "),
+                createTextNode("Change Actor Graphic of "),
                 actorNode(params[0]),
-                textNode(' to "'),
-                spanNode(params[1], "value"),
-                textNode('", hue '),
-                spanNode(params[2], "value"),
+                createTextNode(' to "'),
+                createSpanNode(params[1], "value"),
+                createTextNode('", hue '),
+                createSpanNode(params[2], "value"),
             ];
         case 355:
             return makeScript(command);
         case 402:
             return makeWhenChoice(command);
         case 403:
-            return textNode("Cancel Choice");
+            return createTextNode("Cancel Choice");
         case 411:
             return document.createTextNode("Else:");
         case 413:
@@ -518,7 +518,7 @@ function makeWhenChoice(command: EventCommand): Node[] {
     const choice = command.params[1];
     result.push(document.createTextNode('When choice is "'));
 
-    const span = spanNode(choice, "choice");
+    const span = createSpanNode(choice, "choice");
     span.innerHTML = span.innerHTML.replaceAll("\\p", `<span class="player">Player</span>`);
     result.push(span);
 
@@ -541,64 +541,64 @@ function makeScript(command: EventCommand): Node[] {
 function makePlayBgm(command: EventCommand): Node[] {
     const audioFile = command.params[0].AudioFile as AudioFile;
     return [
-        textNode('Play BG music "'),
-        spanNode(audioFile.name, "value"),
-        textNode('", volume '),
-        spanNode(audioFile.volume?.toString() ?? 1, "value"),
-        textNode(", pitch "),
-        spanNode(audioFile.pitch?.toString() ?? 1, "value"),
+        createTextNode('Play BG music "'),
+        createSpanNode(audioFile.name, "value"),
+        createTextNode('", volume '),
+        createSpanNode(audioFile.volume?.toString() ?? 1, "value"),
+        createTextNode(", pitch "),
+        createSpanNode(audioFile.pitch?.toString() ?? 1, "value"),
     ];
 }
 
 function makeFadeOutBgm(command: EventCommand): Node[] {
     return [
-        textNode("Fade Out Bacgkround Music over "),
-        spanNode(command.params[0], "value"),
-        textNode(" seconds"),
+        createTextNode("Fade Out Bacgkround Music over "),
+        createSpanNode(command.params[0], "value"),
+        createTextNode(" seconds"),
     ];
 }
 
 function makePlayBgs(command: EventCommand): Node[] {
     const audioFile = command.params[0].AudioFile as AudioFile;
     return [
-        textNode('Play background sound '),
-        spanNode(audioFile.name, "value"),
-        textNode('", volume '),
-        spanNode(audioFile.volume?.toString() ?? 1, "value"),
-        textNode(", pitch "),
-        spanNode(audioFile.pitch?.toString() ?? 1, "value"),
+        createTextNode('Play background sound '),
+        createSpanNode(audioFile.name, "value"),
+        createTextNode('", volume '),
+        createSpanNode(audioFile.volume?.toString() ?? 1, "value"),
+        createTextNode(", pitch "),
+        createSpanNode(audioFile.pitch?.toString() ?? 1, "value"),
     ];
 }
 
 function makeFadeOutBgs(command: EventCommand): Node[] {
     return [
-        textNode("Fade Out Bacgkround Sound over "),
-        spanNode(command.params[0], "value"),
-        textNode(" seconds"),
+        createTextNode("Fade Out Bacgkround Sound over "),
+        createSpanNode(command.params[0], "value"),
+        createTextNode(" seconds"),
     ];
 }
 
 function makePlaySe(command: EventCommand): Node[] {
     const audioFile = command.params[0].AudioFile as AudioFile;
     return [
-        textNode('Play sound effect "'),
-        spanNode(audioFile.name, "value"),
-        textNode('", volume '),
-        spanNode(audioFile.volume?.toString() ?? 1, "value"),
-        textNode(", pitch "),
-        spanNode(audioFile.pitch?.toString() ?? 1, "value"),
+        createTextNode('Play sound effect "'),
+        createSpanNode(audioFile.name, "value"),
+        createTextNode('", volume '),
+        createSpanNode(audioFile.volume?.toString() ?? 1, "value"),
+        createTextNode(", pitch "),
+        createSpanNode(audioFile.pitch?.toString() ?? 1, "value"),
     ];
 }
 
 function makePlayMe(command: EventCommand): Node[] {
     const audioFile = command.params[0].AudioFile as AudioFile;
     return [
-        textNode('Play music effect "'),
-        spanNode(audioFile.name, "value"),
-        textNode('", volume '),
-        spanNode(audioFile.volume?.toString() ?? 1, "value"),
-        textNode(", pitch "),
-        spanNode(audioFile.pitch?.toString() ?? 1, "value"),
+        createTextNode('Play music effect "'),
+        createSpanNode(audioFile.name, "value"),
+        createTextNode('", volume '),
+        createSpanNode(audioFile.volume?.toString() ?? 1, "value"),
+        createTextNode(", pitch "),
+        createSpanNode(audioFile.pitch?.toString() ?? 1, "value"),
     ];
 }
 
@@ -609,17 +609,17 @@ function makeControlSwitches(command: EventCommand): Node[] {
 
     if (from === to) {
         result.push(document.createTextNode("Turn "));
-        result.push(spanNode(`Switch ${from}`, "switch"));
+        result.push(createSpanNode(`Switch ${from}`, "switch"));
     } else {
         result.push(document.createTextNode("Turn Switches "));
-        result.push(spanNode(command.params[0], "value"));
+        result.push(createSpanNode(command.params[0], "value"));
         result.push(document.createTextNode(".."));
-        result.push(spanNode(command.params[1], "value"));
+        result.push(createSpanNode(command.params[1], "value"));
     }
 
     result.push(document.createTextNode(" "));
     const on = command.params[2] == 0 ? "on" : "off";
-    result.push(spanNode(on.toUpperCase(), on));
+    result.push(createSpanNode(on.toUpperCase(), on));
     return result;
 }
 
@@ -635,12 +635,12 @@ function makeControlVariables(command: EventCommand): Node[] {
     const extra: number | undefined = command.params[5];
 
     if (from === to) {
-        result.push(spanNode(`Variable ${from}`, "variable"));
+        result.push(createSpanNode(`Variable ${from}`, "variable"));
     } else {
         result.push(document.createTextNode("Variables "))
-        result.push(spanNode(from.toString(), "value"));
+        result.push(createSpanNode(from.toString(), "value"));
         result.push(document.createTextNode(".."));
-        result.push(spanNode(to.toString(), "value"));
+        result.push(createSpanNode(to.toString(), "value"));
     }
 
     result.push(document.createTextNode(" "));
@@ -649,20 +649,20 @@ function makeControlVariables(command: EventCommand): Node[] {
 
     switch (operandType) {
         case 0: // invariable
-            result.push(spanNode(operand.toString(), "value"));
+            result.push(createSpanNode(operand.toString(), "value"));
             break;
         case 1: // variable
-            result.push(spanNode(`Variable ${operand}`, "variable"));
+            result.push(createSpanNode(`Variable ${operand}`, "variable"));
             break;
         case 2: // random
             result.push(document.createTextNode("random value from "));
-            result.push(spanNode(operand.toString(), "value"));
+            result.push(createSpanNode(operand.toString(), "value"));
             result.push(document.createTextNode(" to "));
-            result.push(spanNode(extra!.toString(), "value"));
+            result.push(createSpanNode(extra!.toString(), "value"));
             break;
         case 3: // item
             result.push(document.createTextNode(`# of `));
-            result.push(spanNode(`Item ${operand.toString()}`, "item"));
+            result.push(createSpanNode(`Item ${operand.toString()}`, "item"));
             result.push(document.createTextNode(` carried`));
             break;
         case 6: { // character
@@ -687,7 +687,7 @@ function makeControlVariables(command: EventCommand): Node[] {
                     par = "terrain tag";
                     break;
             }
-            result.push(spanNode(`Character ${operand}`, "character"));
+            result.push(createSpanNode(`Character ${operand}`, "character"));
             result.push(document.createTextNode(` ${par}`));
             break;
         }
@@ -713,7 +713,7 @@ function makeControlVariables(command: EventCommand): Node[] {
                     text = "save count";
                     break;
             }
-            result.push(spanNode(text, "value"));
+            result.push(createSpanNode(text, "value"));
             break;
         }
         default:
@@ -727,29 +727,29 @@ function makeControlSelfSwitch(command: EventCommand): Node[] {
     const on = command.params[1] == 0 ? "on" : "off";
     return [
         document.createTextNode("Set "),
-        spanNode(`Self Switch ${command.params[0]}`, "selfswitch"),
+        createSpanNode(`Self Switch ${command.params[0]}`, "selfswitch"),
         document.createTextNode(" "),
-        spanNode(on.toUpperCase(), on),
+        createSpanNode(on.toUpperCase(), on),
     ];
 }
 
 function makeScrollMap(command: EventCommand): Node[] {
     return [
-        textNode("Scroll Map: direction "),
-        spanNode(command.params[0], "value"),
-        textNode(", distance "),
-        spanNode(command.params[1], "value"),
-        textNode(", speed "),
-        spanNode(command.params[2], "value"),
+        createTextNode("Scroll Map: direction "),
+        createSpanNode(command.params[0], "value"),
+        createTextNode(", distance "),
+        createSpanNode(command.params[1], "value"),
+        createTextNode(", speed "),
+        createSpanNode(command.params[2], "value"),
     ];
 }
 
 function makeShowAnimation(command: EventCommand): Node[] {
     return [
-        textNode("Set "),
+        createTextNode("Set "),
         characterNode(command.params[0]),
-        textNode("'s animation ID to "),
-        spanNode(command.params[1], "value"),
+        createTextNode("'s animation ID to "),
+        createSpanNode(command.params[1], "value"),
     ];
 }
 
@@ -759,7 +759,7 @@ function makeSetMoveRoute(command: EventCommand): Node {
     const content = document.createElement("div");
     content.classList.add("code");
     summary.textContent = "Set Move Route for ";
-    summary.append(spanNode(`Character ${command.params[0]}`, "character"));
+    summary.append(createSpanNode(`Character ${command.params[0]}`, "character"));
     details.appendChild(summary);
     content.append(JSON.stringify(command.params[1]));
     details.appendChild(content);
@@ -769,7 +769,7 @@ function makeSetMoveRoute(command: EventCommand): Node {
 function makeCallCommonEvent(command: EventCommand): Node[] {
     return [
         document.createTextNode("Call Common Event "),
-        spanNode(command.params[0], "value"),
+        createSpanNode(command.params[0], "value"),
     ];
 }
 
@@ -785,28 +785,28 @@ function makeShowPicture(command: EventCommand): Node[] {
     const opacity = command.params[8] as number;
     const blendType = command.params[9] as number;
 
-    const xNode = spanNode(literal ? x.toString() : `Variable ${x}`, literal ? "value" : "variable");
-    const yNode = spanNode(literal ? y.toString() : `Variable ${y}`, literal ? "value" : "variable");
+    const xNode = createSpanNode(literal ? x.toString() : `Variable ${x}`, literal ? "value" : "variable");
+    const yNode = createSpanNode(literal ? y.toString() : `Variable ${y}`, literal ? "value" : "variable");
 
     return [
-        textNode("Show Picture "),
-        spanNode(id.toString(), "value"),
-        textNode(' "'),
-        spanNode(name, "value"),
-        textNode('" with origin '),
-        spanNode(origin.toString(), "value"),
-        textNode(" at ("),
+        createTextNode("Show Picture "),
+        createSpanNode(id.toString(), "value"),
+        createTextNode(' "'),
+        createSpanNode(name, "value"),
+        createTextNode('" with origin '),
+        createSpanNode(origin.toString(), "value"),
+        createTextNode(" at ("),
         xNode,
-        textNode(","),
+        createTextNode(","),
         yNode,
-        textNode(") with zoom ("),
-        spanNode(zoomX.toString(), "value"),
-        textNode(","),
-        spanNode(zoomY.toString(), "value"),
-        textNode("), opacity "),
-        spanNode(opacity.toString(), "value"),
-        textNode(", blend type "),
-        spanNode(blendType.toString(), "value"),
+        createTextNode(") with zoom ("),
+        createSpanNode(zoomX.toString(), "value"),
+        createTextNode(","),
+        createSpanNode(zoomY.toString(), "value"),
+        createTextNode("), opacity "),
+        createSpanNode(opacity.toString(), "value"),
+        createTextNode(", blend type "),
+        createSpanNode(blendType.toString(), "value"),
     ];
 }
 
@@ -822,44 +822,44 @@ function makeMovePicture(command: EventCommand): Node[] {
     const opacity = command.params[8] as number;
     const blendType = command.params[9] as number;
 
-    const xNode = spanNode(literal ? x.toString() : `Variable ${x}`, literal ? "value" : "variable");
-    const yNode = spanNode(literal ? y.toString() : `Variable ${y}`, literal ? "value" : "variable");
+    const xNode = createSpanNode(literal ? x.toString() : `Variable ${x}`, literal ? "value" : "variable");
+    const yNode = createSpanNode(literal ? y.toString() : `Variable ${y}`, literal ? "value" : "variable");
 
     return [
-        textNode("Move Picture "),
-        spanNode(id.toString(), "value"),
-        textNode(' over '),
-        spanNode(duration, "value"),
-        textNode(' frames with origin '),
-        spanNode(origin.toString(), "value"),
-        textNode(" to ("),
+        createTextNode("Move Picture "),
+        createSpanNode(id.toString(), "value"),
+        createTextNode(' over '),
+        createSpanNode(duration, "value"),
+        createTextNode(' frames with origin '),
+        createSpanNode(origin.toString(), "value"),
+        createTextNode(" to ("),
         xNode,
-        textNode(","),
+        createTextNode(","),
         yNode,
-        textNode(") with zoom ("),
-        spanNode(zoomX.toString(), "value"),
-        textNode(","),
-        spanNode(zoomY.toString(), "value"),
-        textNode("), opacity "),
-        spanNode(opacity.toString(), "value"),
-        textNode(", blend type "),
-        spanNode(blendType.toString(), "value"),
+        createTextNode(") with zoom ("),
+        createSpanNode(zoomX.toString(), "value"),
+        createTextNode(","),
+        createSpanNode(zoomY.toString(), "value"),
+        createTextNode("), opacity "),
+        createSpanNode(opacity.toString(), "value"),
+        createTextNode(", blend type "),
+        createSpanNode(blendType.toString(), "value"),
     ];
 }
 
 function makeErasePicture(command: EventCommand): Node[] {
     return [
-        textNode("Erase Picture "),
-        spanNode(command.params[0], "value"),
+        createTextNode("Erase Picture "),
+        createSpanNode(command.params[0], "value"),
     ];
 }
 
 function makeChangeTextOptions(command: EventCommand): Node[] {
     return [
-        textNode("Change Text Options: position = "),
-        spanNode(command.params[0], "value"),
-        textNode(", frame = "),
-        spanNode(command.params[1], "value"),
+        createTextNode("Change Text Options: position = "),
+        createSpanNode(command.params[0], "value"),
+        createTextNode(", frame = "),
+        createSpanNode(command.params[1], "value"),
     ];
 }
 
@@ -870,10 +870,10 @@ function makeChangeItems(command: EventCommand): Node[] {
     const operand = command.params[3] as number;
 
     return [
-        textNode(operation ? "Increase" : "Decrease"),
-        textNode(" amount of "),
+        createTextNode(operation ? "Increase" : "Decrease"),
+        createTextNode(" amount of "),
         itemNode(item),
-        textNode(" by "),
+        createTextNode(" by "),
         varValueNode(operandType, operand),
     ];
 }
@@ -881,17 +881,17 @@ function makeChangeItems(command: EventCommand): Node[] {
 function makeTransferPlayer(command: EventCommand): Node[] {
     const type = command.params[0] as number;
     return [
-        textNode("Transfer Player to map "),
+        createTextNode("Transfer Player to map "),
         varValueNode(type, command.params[1]),
-        textNode(" to ("),
+        createTextNode(" to ("),
         varValueNode(type, command.params[2]),
-        textNode(","),
+        createTextNode(","),
         varValueNode(type, command.params[3]),
-        textNode("), direction "),
+        createTextNode("), direction "),
         varValueNode(type, command.params[4]),
-        textNode(" "),
-        textNode(command.params[5] == 0 ? "with" : "without"),
-        textNode(" fade"),
+        createTextNode(" "),
+        createTextNode(command.params[5] == 0 ? "with" : "without"),
+        createTextNode(" fade"),
     ];
 }
 
@@ -899,21 +899,21 @@ function makeSetEventLocation(command: EventCommand): Node[] {
     const appointment = command.params[1] as number;
     if (appointment == 1 || appointment == 2) {
         return [
-            textNode("Move "),
+            createTextNode("Move "),
             characterNode(command.params[0]),
-            textNode(" to ("),
+            createTextNode(" to ("),
             varValueNode(appointment, command.params[1]),
-            textNode(","),
+            createTextNode(","),
             varValueNode(appointment, command.params[2]),
-            textNode(")"),
+            createTextNode(")"),
         ];
     } else {
         return [
-            textNode("Swap "),
+            createTextNode("Swap "),
             characterNode(command.params[0]),
-            textNode(" and "),
+            createTextNode(" and "),
             characterNode(command.params[2]),
-            textNode("'s locations"),
+            createTextNode("'s locations"),
         ];
     }
 }

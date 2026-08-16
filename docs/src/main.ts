@@ -15,8 +15,16 @@ for (const game of games) {
     return li;
   }
 
-  ul.appendChild(makeLink(`dump?game=${game}&map=all`, "All Maps", "highlight"));
-  ul.appendChild(makeLink(`dump?game=${game}&map=common`, "Common Events", "highlight"));
+  const allMapsLink = makeLink(
+    `dump?game=${game}&map=all`,
+    "All Maps",
+    "highlight",
+  );
+  allMapsLink.title = "Warning! This may lag your browser!";
+  ul.appendChild(allMapsLink);
+  ul.appendChild(
+    makeLink(`dump?game=${game}&map=common`, "Common Events", "highlight"),
+  );
   for (const [id, name] of Object.entries(maps)) {
     ul.appendChild(
       makeLink(

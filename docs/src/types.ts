@@ -6,18 +6,18 @@ export type MapDefinition = {
 
 export type CommonEvents = CommonEvent[];
 
-export type Event = {
+export type RpgEvent = {
   id: number;
   name: string | undefined;
 };
 
-export type MapEvent = Event & {
+export type MapEvent = RpgEvent & {
   x: number;
   y: number;
   pages: EventPage[];
 };
 
-export type CommonEvent = Event & {
+export type CommonEvent = RpgEvent & {
   trigger: number;
   switchId: number;
   commands: EventCommand[];

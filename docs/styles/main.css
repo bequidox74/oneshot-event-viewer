@@ -1,7 +1,7 @@
 #notice {
-    text-align: center;
-    font-size: 0.9em;
-    margin-top: 2em;
+  text-align: center;
+  font-size: 0.9em;
+  margin-top: 2em;
 }
 
 .highlight {
@@ -10,4 +10,9 @@
 
 ul {
   margin-top: 0;
+}
+
+h1 {
+  margin-top: 0.2em;
+  margin-bottom: 0.2em;
 }

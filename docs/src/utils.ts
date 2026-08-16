@@ -6,7 +6,7 @@ type CollapsibleHeading = {
   linkId?: string;
 };
 
-export function makeCollapsibleHeading(
+export function createCollapsibleHeading(
   data: CollapsibleHeading,
 ): HTMLDetailsElement {
   const details = document.createElement("details");
@@ -40,13 +40,12 @@ export function makeCollapsibleHeading(
   return details;
 }
 
-export function textNode(text: string): Node {
-  return document.createTextNode(text);
-}
-
-export function spanNode(text: any, ...cls: string[]): HTMLSpanElement {
+export function createSpanNode(
+  text: string,
+  ...cls: string[]
+): HTMLSpanElement {
   const span = document.createElement("span");
-  if (cls) {
+  if (cls && cls.length > 0) {
     span.classList.add(...cls);
   }
   span.textContent = text.toString();
