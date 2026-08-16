@@ -130,6 +130,21 @@ ul.choices {
   margin-left: 2px;
   margin-right: 2px;
 }
+.inline-change {
+  position: relative;
+}
+.inline-change .portrait-container {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  display: none;
+  background-color: black;
+  border: 2px solid var(--color-wme-purple);
+  padding: 0.2em;
+}
+.inline-change:hover .portrait-container {
+  display: block;
+}
 
 .note {
   max-width: 20em;

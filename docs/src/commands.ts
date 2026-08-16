@@ -425,6 +425,9 @@ function makeInlinePortraitChange(face: string): HTMLElement {
   root.classList.add("inline", "inline-change");
   root.textContent = "@";
   root.title = "Change Portrait to " + face;
+  
+  const portrait = makePortrait(face);
+  root.appendChild(portrait);
   return root;
 }
 
