@@ -1,6 +1,15 @@
 import { makeCommonEvents, makeMap } from "./tree";
 import type { CommonEvents, MapDefinition } from "./types";
 
+document.title = "Loading...";
+
+const urlParams = new URLSearchParams(window.location.search);
+const game = urlParams.get("game")!;
+const map = urlParams.get("map") ?? "common";
+const skip = urlParams.has("skip");
+
+const root = document.getElementById("root")!;
+
 const expandAll = document.getElementById("expand")!;
 expandAll.onclick = () => {
   document.querySelectorAll("details").forEach((it) => (it.open = true));
@@ -11,14 +20,13 @@ collapseAll.onclick = () => {
   document.querySelectorAll("details").forEach((it) => (it.open = false));
 };
 
-document.title = "Loading...";
-
-const urlParams = new URLSearchParams(window.location.search);
-const game = urlParams.get("game")!;
-const map = urlParams.get("map") ?? "common";
-const skip = urlParams.has("skip");
-
-const root = document.getElementById("root")!;
+const toggleNonDialogue = document.getElementById("toggle")!;
+toggleNonDialogue.onclick = () => {
+  const newParams = new URLSearchParams(urlParams);
+  if (skip) newParams.delete("skip");
+  else newParams.append("skip", "");
+  window.location.search = newParams.toString();
+};
 
 if (map === "common") {
   const events: CommonEvents = await fetch(`data/${game}/common.json`).then(
