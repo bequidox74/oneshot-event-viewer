@@ -136,6 +136,8 @@ export function makeCommand(command: EventCommand): Node | Node[] {
       return makeSetEventLocation(command);
     case 203:
       return makeScrollMap(command);
+    case 204:
+      return makeChangeMapSettings(command);
     case 207:
       return makeShowAnimation(command);
     case 209:
@@ -523,8 +525,11 @@ function makeCondition(command: EventCommand): Node[] {
       // script
       const span = document.createElement("span");
       span.classList.add("code");
-      span.textContent = command.params[1] as string;
+      const code = command.params[1] as string;
+      span.textContent = code;
       result.push(span);
+
+      if (code.startsWith("EdText.")) result.push(makeEdText(code));
       break;
     }
     default: {
@@ -579,13 +584,62 @@ function makeWhenChoice(command: EventCommand): Node[] {
 function makeScript(command: EventCommand): Node[] {
   const result: Node[] = [];
   result.push(document.createTextNode("Script: "));
+  const code = command.params[0] as string;
 
   const script = document.createElement("div");
   script.classList.add("code");
-  script.textContent = command.params[0] as string;
+  script.textContent = code;
   result.push(script);
 
+  if (code.startsWith("EdText.")) result.push(makeEdText(code));
+
   return result;
+}
+
+function makeEdText(code: string): Node {
+  const box = document.createElement("div");
+  box.classList.add("ed-box");
+
+  function makeButton(text: string): Node {
+    const btn = document.createElement("div");
+    btn.classList.add("ed-box-btn");
+    btn.textContent = text;
+    return btn;
+  }
+
+  const boxBtns = document.createElement("div");
+  boxBtns.classList.add("ed-box-btns");
+
+  const paren = code.indexOf("(");
+  const funcName = code.substring(7, paren);
+
+  const text = code.substring(paren + 2, code.indexOf(")") - 1);
+  const parts = parseEscapes(text.replaceAll("\\\\", "\\")); // only used to handle \p
+  const span = document.createElement("span");
+  span.append(...parts);
+  box.appendChild(span);
+
+  switch (funcName) {
+    case "info": {
+      box.dataset.type = "info";
+      boxBtns.appendChild(makeButton("Ok"));
+      break;
+    }
+    case "yesno": {
+      box.dataset.type = "yesno";
+      boxBtns.appendChild(makeButton("Yes"));
+      boxBtns.appendChild(makeButton("No"));
+      break;
+    }
+    case "error": {
+      box.dataset.type = "error";
+      boxBtns.appendChild(makeButton("Ok"));
+      break;
+    }
+  }
+
+  box.appendChild(boxBtns);
+  return box;
 }
 
 function makePlayBgm(command: EventCommand): Node[] {
@@ -794,6 +848,59 @@ function makeScrollMap(command: EventCommand): Node[] {
     document.createTextNode(", speed "),
     createSpanNode(command.params[2], "value"),
   ];
+}
+
+function makeChangeMapSettings(command: EventCommand): Node[] {
+  const type = command.params[0];
+  const name = command.params[1];
+  const hue = command.params[2];
+  const opacity = command.params[3];
+  const blendType = command.params[4];
+  const zoom = command.params[5];
+  const sx = command.params[6];
+  const sy = command.params[7];
+
+  switch (type) {
+    case 0: {
+      // panorama
+      return [
+        document.createTextNode('Change Panorama to "'),
+        createSpanNode(name, "value"),
+        document.createTextNode('" with hue '),
+        createSpanNode(hue, "value"),
+      ];
+    }
+    case 1: {
+      // fog
+      return [
+        document.createTextNode('Change Fog to "'),
+        createSpanNode(name, "value"),
+        document.createTextNode('" with hue '),
+        createSpanNode(hue, "value"),
+        document.createTextNode(", opacity "),
+        createSpanNode(opacity, "value"),
+        document.createTextNode(", blend type "),
+        createSpanNode(blendType, "value"),
+        document.createTextNode(", zoom "),
+        createSpanNode(zoom, "value"),
+        document.createTextNode(", sx "),
+        createSpanNode(sx, "value"),
+        document.createTextNode(", sy "),
+        createSpanNode(sy, "value"),
+      ];
+    }
+    case 2: {
+      // battleback
+      return [
+        document.createTextNode('Change Battleback to "'),
+        createSpanNode(name, "value"),
+        document.createTextNode('"'),
+      ];
+    }
+    default:
+      console.error("Illegal Change Map Settings type: " + type);
+      return [];
+  }
 }
 
 function makeShowAnimation(command: EventCommand): Node[] {

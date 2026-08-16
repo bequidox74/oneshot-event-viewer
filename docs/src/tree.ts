@@ -198,11 +198,11 @@ function makeEventBase(
 function makeEventCommands(commands: EventCommand[]): Node {
   const root = document.createElement("div");
   root.classList.add("commands");
-  
+
   const stack: Node[] = [root];
   for (const command of commands) {
     const newLevel = command.indent ?? 0;
-    
+
     while (stack.length > newLevel + 1) {
       stack.pop();
     }
@@ -212,7 +212,7 @@ function makeEventCommands(commands: EventCommand[]): Node {
     const result = makeCommand(command);
     if (Array.isArray(result)) commandDiv.append(...result);
     else commandDiv.append(result);
-    
+
     stack.at(-1)!.appendChild(commandDiv);
     stack.push(commandDiv);
   }

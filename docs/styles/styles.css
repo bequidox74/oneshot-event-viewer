@@ -98,6 +98,10 @@ details > summary {
   color: gray;
 }
 
+.player {
+  text-decoration: dotted underline;
+}
+
 .ed-speak,
 .desktop {
   border: 2px solid var(--color-wme-purple);
