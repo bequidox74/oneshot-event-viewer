@@ -46,6 +46,11 @@ summary > h3 {
   margin-right: 0.2em;
 }
 
+.page .page-cond {
+  margin-top: 0.5em;
+  margin-left: 0.5em;
+}
+
 .commands {
   margin-top: 1em;
   margin-bottom: 1em;
@@ -60,6 +65,12 @@ summary > h3 {
 }
 .switch {
   color: yellow;
+}
+.variable {
+  color: cyan;
+}
+.selfswitch {
+  color: magenta;
 }
 .value {
   color: dodgerblue;

@@ -77,7 +77,7 @@ function makeCommonEvent(event: CommonEvent, parentId: string): Node {
 
 function makeMapEvent(event: MapEvent, parentId: string): Node {
   const [root, content] = makeEventBase(event, parentId);
-  
+
   const info = document.createElement("div");
   info.classList.add("event-info");
 
@@ -102,11 +102,65 @@ function makeMapEvent(event: MapEvent, parentId: string): Node {
 function makePage(page: EventPage, parentId: string, index: number): Node {
   const root = document.createElement("div");
   root.id = parentId + `-p${index}`;
+  root.classList.add("page");
+
   const details = createCollapsibleHeading({
     level: 3,
     name: `Page ${index}`,
     linkId: parentId,
   });
+
+  if (page.condition) {
+    const cond = page.condition;
+    const container = document.createElement("div");
+    container.classList.add("page-cond");
+
+    if (page.condition.switch1) {
+      const div = document.createElement("div");
+      div.append(
+        document.createTextNode("If "),
+        createSpanNode(`Switch ${cond.switch1}`, "switch"),
+        document.createTextNode(" is "),
+        createSpanNode("ON", "on"),
+      );
+      container.appendChild(div);
+    }
+
+    if (page.condition.switch2) {
+      const div = document.createElement("div");
+      div.append(
+        document.createTextNode("If "),
+        createSpanNode(`Switch ${cond.switch2}`, "switch"),
+        document.createTextNode(" is "),
+        createSpanNode("ON", "on"),
+      );
+      container.appendChild(div);
+    }
+
+    if (page.condition.selfSwitch) {
+      const div = document.createElement("div");
+      div.append(
+        document.createTextNode("If "),
+        createSpanNode(`Self Switch ${cond.selfSwitch}`, "selfswitch"),
+        document.createTextNode(" is "),
+        createSpanNode("ON", "on"),
+      );
+      container.appendChild(div);
+    }
+
+    if (page.condition.var) {
+      const div = document.createElement("div");
+      div.append(
+        document.createTextNode("If "),
+        createSpanNode(`Variable ${cond.var}`, "variable"),
+        document.createTextNode(" >= "),
+        createSpanNode(cond.value!.toString(), "value"),
+      );
+      container.appendChild(div);
+    }
+
+    details.appendChild(container);
+  }
 
   details.appendChild(makeEventCommands(page.list));
   root.appendChild(details);
