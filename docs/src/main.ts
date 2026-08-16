@@ -1,3 +1,13 @@
+const details = document.querySelectorAll("details");
+for (const d of details) {
+  const key = `${d.id}-open`;
+  d.addEventListener("toggle", () => {
+    sessionStorage.setItem(key, d.open.toString());
+  });
+  const value = sessionStorage.getItem(key);
+  if (value) d.open = (value == "true");
+}
+
 const games = ["os14", "os16", "wme", "pc"];
 for (const game of games) {
   const maps: Record<string, string> = await fetch(
