@@ -302,6 +302,8 @@ function parseEscapes(raw: string): Node[] {
   let start = 0;
   let end = 0;
 
+  raw = raw.replaceAll("’", "'"); // HACK: workaround until the preprocesor is updated
+
   function flush() {
     const text = raw.substring(start, end);
     if (!text) return;
