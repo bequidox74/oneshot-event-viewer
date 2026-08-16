@@ -1,27 +1,41 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
+  <head>
+    <link rel="stylesheet" href="styles/styles.css" />
+    <link rel="stylesheet" href="styles/main.css" />
+    <link rel="icon" href="icon.png" />
+    <title>OneShot Event Viewer</title>
+  </head>
 
-<head>
-<link rel="stylesheet" href="styles/styles.css">
-<title>OneShot Event Viewer</title>
-</head>
-
-<body>
-<div id="content">
-    <h1>OneShot Event Viewer</h1>
-    <div class="links">
+  <body>
+    <div id="content" class="panel">
+      <h1>OneShot Event Viewer</h1>
+      <div class="links">
         <a href="https://github.com/bequidox74/oneshot-event-viewer">github</a>
         <a href="https://oneshot.wiki.gg/">wiki</a>
+      </div>
+      <br />
+      <div id="navigation">
+        <details>
+          <summary>OneShot 2014</summary>
+          <ul id="os14"></ul>
+        </details>
+        <details>
+          <summary>OneShot 2016</summary>
+          <ul id="os16"></ul>
+        </details>
+        <details>
+          <summary>OneShot: World Machine Edition</summary>
+          <ul id="wme"></ul>
+        </details>
+        <details>
+          <summary>The Pancake Episode</summary>
+          <ul id="pc"></ul>
+        </details>
+      </div>
+      <p id="notice" class="subtle">Not affiliated with Future Cat Games.</p>
     </div>
-    <br>
-    <ul id="navigation">
-        <li><a href="dump?game=os14">OneShot 2014</a></li>
-        <li><a href="dump?game=os16">OneShot 2016</a></li>
-        <li><a href="dump?game=wme">OneShot: World Machine Edition</a></li>
-        <li><a href="dump?game=pc">The Pancake Episode</a></li>
-    </ul>
-    <p id="notice">Not affiliated with Future Cat Games.</p>
-</div>
-</body>
 
+    <script type="module" src="src/main.ts"></script>
+  </body>
 </html>

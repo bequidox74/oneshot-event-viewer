@@ -1,0 +1,13 @@
+#notice {
+    text-align: center;
+    font-size: 0.9em;
+    margin-top: 2em;
+}
+
+ul {
+  margin-top: 0;
+}
+
+details > summary {
+  cursor: pointer;
+}

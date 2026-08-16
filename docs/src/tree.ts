@@ -1,55 +1,75 @@
 import { makeCommand } from "./commands";
 import type { CommonEvent, CommonEvents, EventCommand, EventPage, MapDefinition, MapEvent } from "./types";
+import { elemNode, spanNode, textNode, wrapWithLi } from "./utils";
 
-export function makeMap(map: MapDefinition, id: number): HTMLElement {
+type Context = {
+    mapId: number,
+    event?: number,
+    page?: number,
+}
+
+export function makeMap(map: MapDefinition): Node {
     const root = document.createElement("li");
-    root.classList.add("map");
-    root.id = `map${id}`;
+    root.classList.add("map", "container");
+    root.id = `m${map.id}`;
+
+    const ctx: Context = {
+        mapId: map.id,
+    }
 
     const heading = document.createElement("h1");
     const mapName = map.name ? map.name : "(unnamed)";
     if (!map.name) heading.classList.add("unnamed");
     heading.textContent = `${mapName} (${map.id})`;
+    root.appendChild(heading);
 
     const eventList = document.createElement("ul");
-    eventList.classList.add("events");
+    eventList.classList.add("events", "map-events");
     for (const event of map.events) {
-        eventList.appendChild(makeMapEvent(event));
+        const node = makeMapEvent(event, ctx);
+        root.appendChild(wrapWithLi(node));
     }
-
-    root.appendChild(heading);
     root.appendChild(eventList);
+
     return root;
 }
 
-function makeMapEvent(event: MapEvent): HTMLElement {
-    const root = document.createElement("li");
+function makeMapEvent(event: MapEvent, ctx: Context): Node {
+    ctx.event = event.id;
+    const root = document.createElement("div");
+    root.id = `m${ctx.mapId}e${event.id}`;
     root.classList.add("event");
 
+    const parentAnchor = document.createElement("a");
+    parentAnchor.textContent = "^";
+    parentAnchor.href = `#m${ctx.mapId}`;
+    parentAnchor.title = "Go to parent map";
+
     const heading = document.createElement("h2");
-    heading.textContent = `[${event.id}] ${event.name ?? "(unnamed)"}`;
-    if (event.name == null) {
-        heading.classList.add("unnamed");
-    }
-
-    const info = document.createElement("div");
-    info.textContent = `x: ${event.x}, y: ${event.y}`;
-
-    const pages = document.createElement("ul");
-    pages.classList.add("pages");
-    for (const [i, page] of event.pages.entries()) {
-        pages.appendChild(makePage(page, i));
-    }
-
+    heading.append(
+        parentAnchor,
+        textNode(`[${event.id}] `),
+        textNode(event.name ?? "(unnamed)"),
+        spanNode(` (${event.x},${event.y})`, "coords", "subtle"),
+    );
+    if (event.name == null) heading.classList.add("subtle");
     root.appendChild(heading);
-    root.appendChild(info);
-    root.appendChild(pages);
+
+    const pageList = document.createElement("ul");
+    pageList.classList.add("pages");
+    for (const [i, page] of event.pages.entries()) {
+        ctx.page = i;
+        const pageNode = makePage(page, ctx);
+        pageList.appendChild(wrapWithLi(pageNode));
+    }
+    root.appendChild(pageList);
+
     return root;
 }
 
 export function makeCommonEvents(events: CommonEvents): HTMLElement {
     const root = document.createElement("li");
-    root.classList.add("events");
+    root.classList.add("events", "container");
     root.id = "common-events";
 
     const heading = document.createElement("h1");
@@ -72,12 +92,20 @@ function makeCommonEvent(_event: CommonEvent): HTMLElement {
     return root;
 }
 
-function makePage(page: EventPage, index: number): HTMLElement {
-    const root = document.createElement("li");
+function makePage(page: EventPage, ctx: Context): HTMLElement {
+    const root = document.createElement("div");
+    root.id = `m${ctx.mapId}e${ctx.event}p${ctx.page}`;
     root.classList.add("page");
 
     const heading = document.createElement("h3");
-    heading.textContent = `Page ${index}`;
+
+    const parentAnchor = document.createElement("a");
+    parentAnchor.textContent = "^";
+    parentAnchor.href = `#m${ctx.mapId}e${ctx.event}`;
+    parentAnchor.title = "Go to parent event";
+
+    heading.appendChild(parentAnchor)
+    heading.appendChild(textNode(`Page ${ctx.page}`))
     root.appendChild(heading);
 
     if (page.condition) {
@@ -118,13 +146,7 @@ function makeCommandTree(commands: EventCommand[]): HTMLElement {
         const root = document.createElement("ul");
         return root;
     }
-    
-    function wrapWithLi(elem: Node | Node[]): HTMLElement {
-        const li = document.createElement("li");
-        if (Array.isArray(elem)) li.append(...elem);
-        else li.append(elem);
-        return li;
-    }
+
 
     const root = createRoot();
     root.classList.add("commands");

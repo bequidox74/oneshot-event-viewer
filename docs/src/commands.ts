@@ -1,4 +1,5 @@
 import type { AudioFile, EventCommand } from "./types";
+import { spanNode, textNode } from "./utils";
 
 const CODE_TO_COMPARISON: { [key: number]: string } = {
     0: "==",
@@ -26,19 +27,6 @@ function getItem(id: number): string {
     return `Item ${id}`;
 }
 
-function textNode(text: string): Node {
-    return document.createTextNode(text);
-}
-
-function spanNode(text: any, cls?: string | string[]): HTMLSpanElement {
-    const span = document.createElement("span");
-    if (cls) {
-        if (Array.isArray(cls)) span.classList.add(...cls);
-        else span.classList.add(cls);
-    }
-    span.textContent = text.toString();
-    return span;
-}
 
 function characterNode(char: number): Node {
     return spanNode(`Character ${char}`, "character");
@@ -146,7 +134,7 @@ export function makeCommand(command: EventCommand): Node | Node[] {
             ];
         case 201:
             return makeTransferPlayer(command);
-        case 202: 
+        case 202:
             return makeSetEventLocation(command);
         case 203:
             return makeScrollMap(command);
@@ -297,7 +285,7 @@ function makeDialogueBox(command: EventCommand): HTMLElement {
 
 function parseEscapes(raw: string): Node[] {
     const result: Node[] = [];
-    let color = 0;
+    const color = 0;
     let start = 0;
     let end = 0;
 
@@ -402,7 +390,7 @@ function makeCondition(command: EventCommand): Node[] {
             switchSpan.classList.add("switch");
             switchSpan.textContent = `Switch ${command.params[1]}`
             result.push(switchSpan);
-            
+
             result.push(document.createTextNode(" is "));
 
             const onSpan = document.createElement("span");
@@ -419,7 +407,7 @@ function makeCondition(command: EventCommand): Node[] {
             result.push(varSpan);
 
             result.push(document.createTextNode(` ${CODE_TO_COMPARISON[command.params[4]]} `))
-            
+
             const valueSpan = document.createElement("span");
             const isInvariable = command.params[3] == 0;
             valueSpan.classList.add(isInvariable ? "value" : "variable");
@@ -507,7 +495,7 @@ function makeCondition(command: EventCommand): Node[] {
 
 function makeShowChoices(command: EventCommand): HTMLElement {
     const root = document.createElement("div");
-    
+
     const title = document.createTextNode("Show Choices:");
     root.appendChild(title);
 
@@ -618,7 +606,7 @@ function makeControlSwitches(command: EventCommand): Node[] {
     const result: Node[] = [];
     const from: number = command.params[0];
     const to: number = command.params[1];
-    
+
     if (from === to) {
         result.push(document.createTextNode("Turn "));
         result.push(spanNode(`Switch ${from}`, "switch"));
@@ -645,7 +633,7 @@ function makeControlVariables(command: EventCommand): Node[] {
     const operandType = command.params[3] as number;
     const operand = command.params[4] as number;
     const extra: number | undefined = command.params[5];
-    
+
     if (from === to) {
         result.push(spanNode(`Variable ${from}`, "variable"));
     } else {
@@ -654,11 +642,11 @@ function makeControlVariables(command: EventCommand): Node[] {
         result.push(document.createTextNode(".."));
         result.push(spanNode(to.toString(), "value"));
     }
-    
+
     result.push(document.createTextNode(" "));
     result.push(document.createTextNode(CODE_TO_VARIABLE_OP[type]));
     result.push(document.createTextNode(" "));
-    
+
     switch (operandType) {
         case 0: // invariable
             result.push(spanNode(operand.toString(), "value"));
@@ -731,7 +719,7 @@ function makeControlVariables(command: EventCommand): Node[] {
         default:
             break;
     }
-    
+
     return result;
 }
 
@@ -796,7 +784,7 @@ function makeShowPicture(command: EventCommand): Node[] {
     const zoomY = command.params[7] as number;
     const opacity = command.params[8] as number;
     const blendType = command.params[9] as number;
-    
+
     const xNode = spanNode(literal ? x.toString() : `Variable ${x}`, literal ? "value" : "variable");
     const yNode = spanNode(literal ? y.toString() : `Variable ${y}`, literal ? "value" : "variable");
 
@@ -833,7 +821,7 @@ function makeMovePicture(command: EventCommand): Node[] {
     const zoomY = command.params[7] as number;
     const opacity = command.params[8] as number;
     const blendType = command.params[9] as number;
-    
+
     const xNode = spanNode(literal ? x.toString() : `Variable ${x}`, literal ? "value" : "variable");
     const yNode = spanNode(literal ? y.toString() : `Variable ${y}`, literal ? "value" : "variable");
 
@@ -880,7 +868,7 @@ function makeChangeItems(command: EventCommand): Node[] {
     const operation = command.params[1] as number;
     const operandType = command.params[2] as number;
     const operand = command.params[3] as number;
-    
+
     return [
         textNode(operation ? "Increase" : "Decrease"),
         textNode(" amount of "),

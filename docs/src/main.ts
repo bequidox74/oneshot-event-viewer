@@ -1,35 +1,26 @@
-import { makeCommonEvents, makeMap } from "./tree";
-import type { CommonEvents, MapDefinition } from "./types";
+const games = ["os14", "os16", "wme", "pc"];
+for (const game of games) {
+  const maps: Record<string, string> = await fetch(
+    `data/${game}/maps.json`,
+  ).then((res) => res.json());
 
-const content = document.getElementById("content")!;
+  const ul = document.getElementById(game)!;
+  function makeLink(href: string, text: string): HTMLLIElement {
+    const li = document.createElement("li");
+    const a = document.createElement("a");
+    a.href = href;
+    a.textContent = text;
+    li.appendChild(a);
+    return li;
+  }
 
-const urlParams = new URLSearchParams(window.location.search);
-const game = urlParams.get("game");
-
-const filterString = urlParams.get("filter") ?? "";
-const filters: string[] = filterString ? filterString.split(",") : [];
-const noCommon: boolean = urlParams.has("nocommon");
-
-// load maps & common events
-const mapList: Record<string, string> = await fetch(`dialogue/${game}/maps.json`)
-    .then(res => res.json());
-
-const maps: MapDefinition[] = [];
-for (const mapId of Object.keys(mapList)) {
-    const filename = `map${mapId}`;
-    if (filters.length > 0 && !filters.includes(filename)) continue;
-    const map: MapDefinition = await fetch(`dialogue/${game}/${filename}.json`)
-        .then(res => res.json());
-    maps.push(map);
-}
-maps.sort((a, b) => a.id - b.id);
-
-// emit content
-if (!noCommon) {
-    const commonEvents: CommonEvents = await fetch(`dialogue/${game}/common.json`)
-        .then(res => res.json());
-    content.appendChild(makeCommonEvents(commonEvents));
-}
-for (const map of maps) {
-    content.appendChild(makeMap(map, map.id));
+  ul.appendChild(makeLink(`dump?game=${game}&map=all`, "All maps"));
+  for (const [id, name] of Object.entries(maps)) {
+    ul.appendChild(
+      makeLink(
+        `dump?game=${game}&map=${id}`,
+        `[${id}] ${name ?? "(unnamed map)"}`,
+      ),
+    );
+  }
 }
