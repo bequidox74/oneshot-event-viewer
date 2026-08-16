@@ -8,13 +8,13 @@ import type {
 export function makeCommonEvents(events: CommonEvents): Node {
   const root = document.createElement("div");
   root.id = "common";
-  
+
   const details = document.createElement("details");
   const summary = document.createElement("summary");
   details.appendChild(summary);
   details.open = true;
   root.appendChild(details);
-  
+
   const heading = document.createElement("h1");
   heading.textContent = "Common Events";
   summary.appendChild(heading);
@@ -29,6 +29,25 @@ export function makeCommonEvents(events: CommonEvents): Node {
 export function makeMap(map: MapDefinition): Node {
   const root = document.createElement("div");
   root.id = `map${map.id}`;
+
+  const details = document.createElement("details");
+  const summary = document.createElement("summary");
+  details.appendChild(summary);
+  details.open = true;
+  root.appendChild(details);
+
+  const heading = document.createElement("h1");
+
+  const nameSpan = document.createElement("span");
+  nameSpan.textContent = map.name ?? "(unnamed)";
+  if (!map.name) nameSpan.classList.add("subtle");
+
+  const idSpan = document.createElement("span");
+  idSpan.textContent = ` [${map.id}]`;
+  idSpan.classList.add("map-id");
+
+  heading.append(nameSpan, idSpan);
+  summary.appendChild(heading);
 
   for (const event of map.events) {
     root.appendChild(makeEvent(event, root.id));

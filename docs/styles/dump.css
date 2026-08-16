@@ -2,12 +2,6 @@
   text-align: center;
 }
 
-#navigation {
-  margin-bottom: 0.5em;
-}
-#navigation * {
-  margin-right: 0.5em;
-}
 
 .clickable {
   color: var(--color-wme-purple);
@@ -15,6 +9,11 @@
 }
 .clickable:hover {
   text-decoration: solid underline;
+}
+
+details {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
 }
 
 summary > h1 {
