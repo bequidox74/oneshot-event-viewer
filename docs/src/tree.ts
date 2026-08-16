@@ -47,13 +47,16 @@ export function makeMap(map: MapDefinition): Node {
 function makeCommonEvent(event: CommonEvent, parentId: string): Node {
   const [root, content] = makeEventBase(event, parentId);
 
+  const info = document.createElement("div");
+  info.classList.add("event-info");
+
   if (event.trigger !== undefined) {
     const span = document.createElement("div");
     span.append(
       document.createTextNode("Trigger: "),
       createSpanNode(event.trigger.toString(), "value"),
     );
-    content.appendChild(span);
+    info.appendChild(span);
   }
 
   if (event.switchId !== undefined) {
@@ -64,15 +67,19 @@ function makeCommonEvent(event: CommonEvent, parentId: string): Node {
       document.createTextNode(" is "),
       createSpanNode("ON", "on"),
     );
-    content.appendChild(span);
+    info.appendChild(span);
   }
 
+  content.appendChild(info);
   content.appendChild(makeEventCommands(event.commands));
   return root;
 }
 
 function makeMapEvent(event: MapEvent, parentId: string): Node {
   const [root, content] = makeEventBase(event, parentId);
+  
+  const info = document.createElement("div");
+  info.classList.add("event-info");
 
   const posSpan = document.createElement("div");
   posSpan.append(
@@ -82,8 +89,9 @@ function makeMapEvent(event: MapEvent, parentId: string): Node {
     createSpanNode(event.y.toString(), "value"),
     document.createTextNode(")"),
   );
-  content.appendChild(posSpan);
+  info.appendChild(posSpan);
 
+  content.appendChild(info);
   for (const [i, page] of event.pages.entries()) {
     content.appendChild(makePage(page, root.id, i));
   }
