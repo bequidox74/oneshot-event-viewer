@@ -10,7 +10,9 @@ import type {
 } from "./types";
 import { createCollapsibleHeading, createSpanNode } from "./utils";
 
-export function makeCommonEvents(events: CommonEvents): Node {
+const DIALOGUE_ONLY_CODES = [101, 102, 106, 111, 355, 411];
+
+export function makeCommonEvents(events: CommonEvents, skipEvents: boolean): Node {
   const root = document.createElement("div");
   root.id = "common";
 
@@ -21,13 +23,13 @@ export function makeCommonEvents(events: CommonEvents): Node {
   root.appendChild(details);
 
   for (const event of events) {
-    details.appendChild(makeCommonEvent(event, root.id));
+    details.appendChild(makeCommonEvent(event, root.id, skipEvents));
   }
 
   return root;
 }
 
-export function makeMap(map: MapDefinition): Node {
+export function makeMap(map: MapDefinition, skipEvents: boolean): Node {
   const root = document.createElement("div");
   root.id = `map${map.id}`;
 
@@ -39,13 +41,13 @@ export function makeMap(map: MapDefinition): Node {
   root.appendChild(details);
 
   for (const event of map.events) {
-    details.appendChild(makeMapEvent(event, root.id));
+    details.appendChild(makeMapEvent(event, root.id, skipEvents));
   }
 
   return root;
 }
 
-function makeCommonEvent(event: CommonEvent, parentId: string): Node {
+function makeCommonEvent(event: CommonEvent, parentId: string, skipEvents: boolean): Node {
   const [root, content] = makeEventBase(event, parentId);
 
   const info = document.createElement("div");
@@ -72,11 +74,11 @@ function makeCommonEvent(event: CommonEvent, parentId: string): Node {
   }
 
   content.appendChild(info);
-  content.appendChild(makeEventCommands(event.commands));
+  content.appendChild(makeEventCommands(event.commands, skipEvents));
   return root;
 }
 
-function makeMapEvent(event: MapEvent, parentId: string): Node {
+function makeMapEvent(event: MapEvent, parentId: string, skipEvents: boolean): Node {
   const [root, content] = makeEventBase(event, parentId);
 
   const info = document.createElement("div");
@@ -94,13 +96,13 @@ function makeMapEvent(event: MapEvent, parentId: string): Node {
 
   content.appendChild(info);
   for (const [i, page] of event.pages.entries()) {
-    content.appendChild(makePage(page, root.id, i));
+    content.appendChild(makePage(page, root.id, i, skipEvents));
   }
 
   return root;
 }
 
-function makePage(page: EventPage, parentId: string, index: number): Node {
+function makePage(page: EventPage, parentId: string, index: number, skipEvents: boolean): Node {
   const root = document.createElement("div");
   root.id = parentId + `-p${index}`;
   root.classList.add("page");
@@ -163,7 +165,7 @@ function makePage(page: EventPage, parentId: string, index: number): Node {
     details.appendChild(container);
   }
 
-  details.appendChild(makeEventCommands(page.list));
+  details.appendChild(makeEventCommands(page.list, skipEvents));
   root.appendChild(details);
 
   return root;
@@ -195,12 +197,17 @@ function makeEventBase(
   return [root, content];
 }
 
-function makeEventCommands(commands: EventCommand[]): Node {
+function makeEventCommands(commands: EventCommand[], skipEvents: boolean): Node {
   const root = document.createElement("div");
   root.classList.add("commands");
+  
+  function shouldSkip(code: number): boolean {
+    return skipEvents && !DIALOGUE_ONLY_CODES.includes(code);
+  }
 
   const stack: Node[] = [root];
   for (const command of commands) {
+    if (shouldSkip(command.code)) continue;
     const newLevel = command.indent ?? 0;
 
     while (stack.length > newLevel + 1) {

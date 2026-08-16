@@ -16,6 +16,7 @@ document.title = "Loading...";
 const urlParams = new URLSearchParams(window.location.search);
 const game = urlParams.get("game")!;
 const map = urlParams.get("map") ?? "common";
+const skip = urlParams.has("skip");
 
 const root = document.getElementById("root")!;
 
@@ -23,7 +24,7 @@ if (map === "common") {
   const events: CommonEvents = await fetch(`data/${game}/common.json`).then(
     (res) => res.json(),
   );
-  const tree = makeCommonEvents(events);
+  const tree = makeCommonEvents(events, skip);
   root.appendChild(tree);
 } else {
   const files: string[] = [];
@@ -44,7 +45,7 @@ if (map === "common") {
 
   const loadedMaps = await Promise.all(promises);
   for (const map of loadedMaps) {
-    const tree = makeMap(map);
+    const tree = makeMap(map, skip);
     root.appendChild(tree);
   }
 }
