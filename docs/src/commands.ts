@@ -283,7 +283,7 @@ function makeDialogueBox(command: EventCommand): HTMLElement {
 
 function parseEscapes(raw: string): Node[] {
   const result: Node[] = [];
-  const color = 0;
+  let color = 0;
   let start = 0;
   let end = 0;
 
@@ -294,7 +294,9 @@ function parseEscapes(raw: string): Node[] {
         ? document.createElement("span")
         : document.createTextNode(text);
     if (color != 0) {
-      (node as HTMLElement).classList.add(`color${color}`);
+      const span = node as HTMLSpanElement;
+      span.classList.add(`color${color}`);
+      span.textContent = text;
     }
     start = end;
     result.push(node);
@@ -342,6 +344,11 @@ function parseEscapes(raw: string): Node[] {
           span.classList.add("player");
           result.push(span);
           break;
+        }
+        case "c": {
+          color = parseInt(raw[end + 1]);
+          end += 3;
+          start = end;
         }
       }
     } else end++;
