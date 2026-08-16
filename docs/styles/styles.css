@@ -4,7 +4,7 @@
 
   --color0: white;
   --color1: red;
-  --color2: green;
+  --color2: lime;
   --color3: yellow;
   --color4: blue;
   --color5: magenta;
@@ -34,11 +34,10 @@ body {
 a,
 a:visited {
   color: var(--color-wme-purple);
-}
-.container a {
-  font-size: 0.8em;
-  margin-right: 0.2em;
   text-decoration: none;
+}
+a:hover {
+  text-decoration: solid underline;
 }
 
 ul {
@@ -48,7 +47,7 @@ ul {
 .panel {
   background-color: black;
   border: 2px solid var(--color-wme-purple);
-  padding: 0.4em;
+  padding: 0.8em;
 }
 
 #content {
@@ -56,8 +55,35 @@ ul {
   min-width: 40%;
   margin: auto;
   margin-top: 1em;
+  margin-bottom: 1em;
   padding-left: 2em;
   padding-right: 2em;
+}
+
+details > summary {
+  cursor: pointer;
+}
+
+.color1 {
+  color: var(--color1);
+}
+.color2 {
+  color: var(--color2);
+}
+.color3 {
+  color: var(--color3);
+}
+.color4 {
+  color: var(--color4);
+}
+.color5 {
+  color: var(--color5);
+}
+.color6 {
+  color: var(--color6);
+}
+.color7 {
+  color: var(--color7);
 }
 
 .subtle {

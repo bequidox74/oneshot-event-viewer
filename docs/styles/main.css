@@ -4,10 +4,10 @@
     margin-top: 2em;
 }
 
-ul {
-  margin-top: 0;
+.highlight {
+  color: var(--color2) !important;
 }
 
-details > summary {
-  cursor: pointer;
+ul {
+  margin-top: 0;
 }

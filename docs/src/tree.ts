@@ -1,177 +1,45 @@
-import { makeCommand } from "./commands";
-import type { CommonEvent, CommonEvents, EventCommand, EventPage, MapDefinition, MapEvent } from "./types";
-import { elemNode, spanNode, textNode, wrapWithLi } from "./utils";
+import type {
+  CommonEvents,
+  MapDefinition,
+  MapEvent,
+  CommonEvent,
+} from "./types";
 
-type Context = {
-    mapId: number,
-    event?: number,
-    page?: number,
+export function makeCommonEvents(events: CommonEvents): Node {
+  const root = document.createElement("div");
+  root.id = "common";
+  
+  const details = document.createElement("details");
+  const summary = document.createElement("summary");
+  details.appendChild(summary);
+  details.open = true;
+  root.appendChild(details);
+  
+  const heading = document.createElement("h1");
+  heading.textContent = "Common Events";
+  summary.appendChild(heading);
+
+  for (const event of events) {
+    details.appendChild(makeEvent(event, root.id));
+  }
+
+  return root;
 }
 
 export function makeMap(map: MapDefinition): Node {
-    const root = document.createElement("li");
-    root.classList.add("map", "container");
-    root.id = `m${map.id}`;
+  const root = document.createElement("div");
+  root.id = `map${map.id}`;
 
-    const ctx: Context = {
-        mapId: map.id,
-    }
+  for (const event of map.events) {
+    root.appendChild(makeEvent(event, root.id));
+  }
 
-    const heading = document.createElement("h1");
-    const mapName = map.name ? map.name : "(unnamed)";
-    if (!map.name) heading.classList.add("unnamed");
-    heading.textContent = `${mapName} (${map.id})`;
-    root.appendChild(heading);
-
-    const eventList = document.createElement("ul");
-    eventList.classList.add("events", "map-events");
-    for (const event of map.events) {
-        const node = makeMapEvent(event, ctx);
-        root.appendChild(wrapWithLi(node));
-    }
-    root.appendChild(eventList);
-
-    return root;
+  return root;
 }
 
-function makeMapEvent(event: MapEvent, ctx: Context): Node {
-    ctx.event = event.id;
-    const root = document.createElement("div");
-    root.id = `m${ctx.mapId}e${event.id}`;
-    root.classList.add("event");
-
-    const parentAnchor = document.createElement("a");
-    parentAnchor.textContent = "^";
-    parentAnchor.href = `#m${ctx.mapId}`;
-    parentAnchor.title = "Go to parent map";
-
-    const heading = document.createElement("h2");
-    heading.append(
-        parentAnchor,
-        textNode(`[${event.id}] `),
-        textNode(event.name ?? "(unnamed)"),
-        spanNode(` (${event.x},${event.y})`, "coords", "subtle"),
-    );
-    if (event.name == null) heading.classList.add("subtle");
-    root.appendChild(heading);
-
-    const pageList = document.createElement("ul");
-    pageList.classList.add("pages");
-    for (const [i, page] of event.pages.entries()) {
-        ctx.page = i;
-        const pageNode = makePage(page, ctx);
-        pageList.appendChild(wrapWithLi(pageNode));
-    }
-    root.appendChild(pageList);
-
-    return root;
-}
-
-export function makeCommonEvents(events: CommonEvents): HTMLElement {
-    const root = document.createElement("li");
-    root.classList.add("events", "container");
-    root.id = "common-events";
-
-    const heading = document.createElement("h1");
-    heading.textContent = "Common Events";
-
-    const eventList = document.createElement("ul");
-    eventList.classList.add("events");
-    for (const event of events) {
-        eventList.appendChild(makeCommonEvent(event));
-    }
-
-    root.appendChild(heading);
-    root.appendChild(eventList);
-    return root;
-}
-
-function makeCommonEvent(_event: CommonEvent): HTMLElement {
-    const root = document.createElement("li");
-    root.classList.add("event");
-    return root;
-}
-
-function makePage(page: EventPage, ctx: Context): HTMLElement {
-    const root = document.createElement("div");
-    root.id = `m${ctx.mapId}e${ctx.event}p${ctx.page}`;
-    root.classList.add("page");
-
-    const heading = document.createElement("h3");
-
-    const parentAnchor = document.createElement("a");
-    parentAnchor.textContent = "^";
-    parentAnchor.href = `#m${ctx.mapId}e${ctx.event}`;
-    parentAnchor.title = "Go to parent event";
-
-    heading.appendChild(parentAnchor)
-    heading.appendChild(textNode(`Page ${ctx.page}`))
-    root.appendChild(heading);
-
-    if (page.condition) {
-        const cond = page.condition;
-        const condRoot = document.createElement("ul");
-        condRoot.classList.add("page-condition", "border");
-
-        if (cond.switch1) {
-            const swch = document.createElement("li");
-            swch.innerHTML = `If <span class="switch">Switch ${cond.switch1}</span> is <span class="on">ON</span>`;
-            condRoot.appendChild(swch);
-        }
-        if (cond.switch2) {
-            const swch = document.createElement("li");
-            swch.innerHTML = `If <span class="switch">Switch ${cond.switch2}</span> is <span class="on">ON</span>`;
-            condRoot.appendChild(swch);
-        }
-        if (cond.var) {
-            const swch = document.createElement("li");
-            swch.innerHTML = `If <span class="variable">Variable ${cond.var}</span> >= <span class="value">${cond.value}</span>`;
-            condRoot.appendChild(swch);
-        }
-        if (cond.selfSwitch) {
-            const swch = document.createElement("li");
-            swch.innerHTML = `If <span class="selfswitch">Self Switch ${cond.selfSwitch}</span> is <span class="on">ON</span>`;
-            condRoot.appendChild(swch);
-        }
-
-        root.appendChild(condRoot);
-        root.appendChild(makeCommandTree(page.list ?? []));
-    }
-
-    return root;
-}
-
-function makeCommandTree(commands: EventCommand[]): HTMLElement {
-    function createRoot(): HTMLElement {
-        const root = document.createElement("ul");
-        return root;
-    }
-
-
-    const root = createRoot();
-    root.classList.add("commands");
-    const stack: HTMLElement[] = [];
-
-    function peek(): HTMLElement {
-        return stack.length > 0 ? stack[stack.length - 1] : root;
-    }
-
-    for (const command of commands) {
-        const newLevel = command.indent ?? 0;
-        const oldLevel = stack.length;
-
-        if (newLevel <= oldLevel) stack.pop();
-        else if (newLevel > oldLevel) {
-            const newRoot = createRoot();
-            const wrapped = newRoot;
-            peek().appendChild(wrapped);
-            stack.push(newRoot);
-        }
-
-        const wrapped = wrapWithLi(makeCommand(command));
-        peek().appendChild(wrapped);
-        stack.push(wrapped);
-    }
-
-    return root;
+function makeEvent(event: CommonEvent | MapEvent, parentId: string): Node {
+  const root = document.createElement("div");
+  root.id = `${parentId}-e${event.id}`;
+  root.classList.add("event");
+  return root;
 }

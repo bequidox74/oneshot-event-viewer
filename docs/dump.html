@@ -1,19 +1,24 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
-<head>
+  <head>
     <meta charset="UTF-8" />
-    <link rel="stylesheet" href="styles/styles.css">
-    <link rel="icon" href="icon.png">
+    <link rel="stylesheet" href="styles/styles.css" />
+    <link rel="stylesheet" href="styles/dump.css" />
+    <link rel="icon" href="icon.png" />
     <title>OneShot Events Viewer</title>
-</head>
+  </head>
 
-<body>
-    <div id="content">
-        <h1 id="status"></h1>
-        <ul id="root"></ul>
+  <body>
+    <div id="content" class="panel">
+      <div id="navigation">
+        <a href="/">&lt; back</a>
+        <span id="expand" class="clickable">expand all</span>
+        <span id="collapse" class="clickable">collapse all</span>
+      </div>
+      <h1 id="status">Loading...</h1>
+      <div id="root"></div>
     </div>
-    <script type="module" src="src/main.js"></script>
-</body>
 
+    <script type="module" src="src/dump.js"></script>
+  </body>
 </html>

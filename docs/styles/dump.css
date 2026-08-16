@@ -1,0 +1,22 @@
+#status {
+  text-align: center;
+}
+
+#navigation {
+  margin-bottom: 0.5em;
+}
+#navigation * {
+  margin-right: 0.5em;
+}
+
+.clickable {
+  color: var(--color-wme-purple);
+  cursor: pointer;
+}
+.clickable:hover {
+  text-decoration: solid underline;
+}
+
+summary > h1 {
+  display: inline;
+}
