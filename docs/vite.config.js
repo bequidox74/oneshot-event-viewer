@@ -7,6 +7,7 @@ export default defineConfig({
         main: "index.html",
         dump: "dump.html",
       }
-    }
-  }
+    },
+  },
+  base: "/oneshot-event-viewer/",
 });
