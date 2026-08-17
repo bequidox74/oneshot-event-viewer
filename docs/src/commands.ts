@@ -456,7 +456,7 @@ function makeCondition(command: EventCommand, context: Context): Node[] {
         ),
       );
 
-      result.push(varValueNode(command.params[3], command.params[2], context));
+      result.push(varValueNode(command.params[2], command.params[3], context));
       break;
     }
     case 2: {
