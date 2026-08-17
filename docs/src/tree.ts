@@ -9,7 +9,7 @@ import type {
   MiscDefinitions,
   RpgEvent,
 } from "./types";
-import { createCollapsibleHeading, createSpanNode } from "./utils";
+import { createCollapsibleHeading, createSpanNode, lookupNode } from "./utils";
 
 export type Context = {
   misc: MiscDefinitions;
@@ -76,7 +76,7 @@ function makeCommonEvent(
     const sid = (event as CommonEvent).switchId;
     const span = document.createElement("div");
     span.append(
-      createSpanNode(`Switch ${sid}`, "switch"),
+      lookupNode(sid, "switches", context),
       document.createTextNode(" is "),
       createSpanNode("ON", "on"),
     );
@@ -133,7 +133,6 @@ function makePage(
   });
 
   if (page.condition) {
-    const cond = page.condition;
     const container = document.createElement("div");
     container.classList.add("page-cond");
 
@@ -141,7 +140,7 @@ function makePage(
       const div = document.createElement("div");
       div.append(
         document.createTextNode("If "),
-        createSpanNode(`Switch ${cond.switch1}`, "switch"),
+        lookupNode(page.condition.switch1, "switches", context),
         document.createTextNode(" is "),
         createSpanNode("ON", "on"),
       );
@@ -152,7 +151,7 @@ function makePage(
       const div = document.createElement("div");
       div.append(
         document.createTextNode("If "),
-        createSpanNode(`Switch ${cond.switch2}`, "switch"),
+        lookupNode(page.condition.switch2, "switches", context),
         document.createTextNode(" is "),
         createSpanNode("ON", "on"),
       );
@@ -163,20 +162,23 @@ function makePage(
       const div = document.createElement("div");
       div.append(
         document.createTextNode("If "),
-        createSpanNode(`Self Switch ${cond.selfSwitch}`, "selfswitch"),
+        createSpanNode(
+          `Self Switch ${page.condition.selfSwitch}`,
+          "selfswitch",
+        ),
         document.createTextNode(" is "),
         createSpanNode("ON", "on"),
       );
       container.appendChild(div);
     }
 
-    if (page.condition.var) {
+    if (page.condition.var && page.condition.value) {
       const div = document.createElement("div");
       div.append(
         document.createTextNode("If "),
-        createSpanNode(`Variable ${cond.var}`, "variable"),
+        lookupNode(page.condition.var, "vars", context),
         document.createTextNode(" >= "),
-        createSpanNode(cond.value!.toString(), "value"),
+        createSpanNode(page.condition.value.toString(), "value"),
       );
       container.appendChild(div);
     }

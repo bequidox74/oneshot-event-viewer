@@ -31,8 +31,8 @@ export type EventPage = {
 export type PageCondition = {
   switch1: number | undefined;
   switch2: number | undefined;
-  var: string | undefined;
-  value: string | undefined;
+  var: number | undefined;
+  value: number | undefined;
   selfSwitch: string | undefined;
 };
 

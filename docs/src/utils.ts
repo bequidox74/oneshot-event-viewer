@@ -1,3 +1,5 @@
+import type { Context } from "./tree";
+
 type CollapsibleHeading = {
   level: number;
   name: string | undefined;
@@ -61,10 +63,37 @@ export function elemNode(
   return result;
 }
 
-export function wrapWithLi(elem: Node | Node[]): HTMLElement {
-  if (elem instanceof HTMLLIElement) return elem;
-  const li = document.createElement("li");
-  if (Array.isArray(elem)) li.append(...elem);
-  else li.append(elem);
-  return li;
+export function lookupNode(
+  id: number,
+  property: "items" | "vars" | "switches" | "actors",
+  context: Context,
+): Node {
+  let cls;
+  let label;
+  switch (property) {
+    case "items":
+      cls = "item";
+      label = "Item";
+      break;
+    case "vars":
+      cls = "variable";
+      label = "Variable";
+      break;
+    case "switches":
+      cls = "switch";
+      label = "Switch";
+      break;
+    case "actors":
+      cls = "character";
+      label = "Character";
+      break;
+  }
+
+  const title = `${label} ${id}`;
+  let text = context.misc[property][id - 1];
+  if (!text) text = title;
+
+  const out = createSpanNode(text, cls);
+  out.title = title;
+  return out;
 }

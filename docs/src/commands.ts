@@ -1,6 +1,6 @@
 import type { Context } from "./tree";
 import type { AudioFile, EventCommand } from "./types";
-import { createSpanNode } from "./utils";
+import { createSpanNode, lookupNode } from "./utils";
 
 const CODE_TO_COMPARISON: { [key: number]: string } = {
   0: "==",
@@ -20,41 +20,6 @@ const CODE_TO_VARIABLE_OP: { [key: number]: string } = {
   5: "%=",
 };
 
-function lookupNode(
-  id: number,
-  property: "items" | "vars" | "switches" | "actors",
-  context: Context,
-): Node {
-  let cls;
-  let label;
-  switch (property) {
-    case "items":
-      cls = "item";
-      label = "Item";
-      break;
-    case "vars":
-      cls = "variable";
-      label = "Variable";
-      break;
-    case "switches":
-      cls = "switch";
-      label = "Switch";
-      break;
-    case "actors":
-      cls = "character";
-      label = "Character";
-      break;
-  }
-
-  const title = `${label} ${id}`;
-  let text = context.misc[property][id - 1];
-  if (!text) text = title;
-
-  const out = createSpanNode(text, cls);
-  out.title = title;
-  return out;
-}
-
 function varValueNode(type: number, operand: number, context: Context): Node {
   return type == 0
     ? createSpanNode(operand.toString(), "value")
@@ -69,7 +34,7 @@ export function makeCommand(
   const params = command.params;
   switch (command.code) {
     case 101:
-      return makeDialogueBox(command);
+      return makeDialogueBox(command, context);
     case 106: {
       return [
         document.createTextNode("Wait "),
@@ -120,7 +85,7 @@ export function makeCommand(
     case 121:
       return makeControlSwitches(command, context);
     case 122:
-      return makeControlVariables(command);
+      return makeControlVariables(command, context);
     case 123:
       return makeControlSelfSwitch(command);
     case 126: // Change Items
@@ -158,7 +123,7 @@ export function makeCommand(
     case 207:
       return makeShowAnimation(command, context);
     case 209:
-      return makeSetMoveRoute(command);
+      return makeSetMoveRoute(command, context);
     case 210:
       return document.createTextNode("Wait for Move's Completion");
     case 221:
@@ -196,9 +161,9 @@ export function makeCommand(
         document.createTextNode(" frames"),
       ];
     case 231:
-      return makeShowPicture(command);
+      return makeShowPicture(command, context);
     case 232:
-      return makeMovePicture(command);
+      return makeMovePicture(command, context);
     case 234: // Change Picture Color Tone
       return [
         document.createTextNode("Change Picture "),
@@ -239,7 +204,7 @@ export function makeCommand(
     case 352:
       return [document.createTextNode("Call Save Screen")];
     case 355:
-      return makeScript(command);
+      return makeScript(command, context);
     case 402:
       return makeWhenChoice(command);
     case 403:
@@ -273,7 +238,7 @@ function makePortrait(face: string): HTMLElement {
   return root;
 }
 
-function makeDialogueBox(command: EventCommand): HTMLElement {
+function makeDialogueBox(command: EventCommand, context: Context): HTMLElement {
   const root = document.createElement("div");
 
   const rawText = command.params[0] as string;
@@ -307,13 +272,13 @@ function makeDialogueBox(command: EventCommand): HTMLElement {
   }
 
   const content = document.createElement("div");
-  content.append(...parseEscapes(text));
+  content.append(...parseEscapes(text, context));
   root.appendChild(content);
 
   return root;
 }
 
-function parseEscapes(raw: string): Node[] {
+function parseEscapes(raw: string, context: Context): Node[] {
   const result: Node[] = [];
   let color = 0;
   let start = 0;
@@ -386,7 +351,7 @@ function parseEscapes(raw: string): Node[] {
           const index = parseInt(raw[end + 1]);
           end += 3;
           start = raw.indexOf("]", start + 1) + 1;
-          result.push(makeInlineVariable(index, color));
+          result.push(makeInlineVariable(index, color, context));
           break;
         }
         case "l":
@@ -448,11 +413,17 @@ function makeInlinePortraitChange(face: string): HTMLElement {
   return root;
 }
 
-function makeInlineVariable(index: number, color: number): HTMLElement {
+function makeInlineVariable(
+  index: number,
+  color: number,
+  context: Context,
+): HTMLElement {
+  let varName = context.misc.vars[index];
+  if (!varName) varName = `Variable ${index}`;
   const root = document.createElement("span");
   root.classList.add("inline", "inline-var", `color${color}`);
   root.textContent = "v";
-  root.title = `Value of Variable ${index}`;
+  root.title = `Value of ${varName}`;
   return root;
 }
 
@@ -559,7 +530,7 @@ function makeCondition(command: EventCommand, context: Context): Node[] {
       result.push(span);
 
       if (code.startsWith("EdText.")) {
-        result.push(makeEdText(code));
+        result.push(makeEdText(code, context));
         addColon = false;
       }
       break;
@@ -613,7 +584,7 @@ function makeWhenChoice(command: EventCommand): Node[] {
   return result;
 }
 
-function makeScript(command: EventCommand): Node[] {
+function makeScript(command: EventCommand, context: Context): Node[] {
   const result: Node[] = [];
   result.push(document.createTextNode("Script: "));
   const code = command.params[0] as string;
@@ -623,12 +594,12 @@ function makeScript(command: EventCommand): Node[] {
   script.textContent = code;
   result.push(script);
 
-  if (code.startsWith("EdText.")) result.push(makeEdText(code));
+  if (code.startsWith("EdText.")) result.push(makeEdText(code, context));
 
   return result;
 }
 
-function makeEdText(code: string): Node {
+function makeEdText(code: string, context: Context): Node {
   const box = document.createElement("div");
   box.classList.add("ed-box");
 
@@ -658,7 +629,7 @@ function makeEdText(code: string): Node {
   const funcName = code.substring(7, paren);
 
   const text = code.substring(paren + 2, code.indexOf(")") - 1);
-  const parts = parseEscapes(text.replaceAll("\\\\", "\\")); // only used to handle \p
+  const parts = parseEscapes(text.replaceAll("\\\\", "\\"), context); // only used to handle \p
   const textNode = document.createElement("div");
   textNode.classList.add("ed-box-text");
   textNode.append(...parts);
@@ -776,7 +747,7 @@ function makeControlSwitches(command: EventCommand, context: Context): Node[] {
   return result;
 }
 
-function makeControlVariables(command: EventCommand): Node[] {
+function makeControlVariables(command: EventCommand, context: Context): Node[] {
   const result: Node[] = [];
   result.push(document.createTextNode("Change "));
 
@@ -788,7 +759,7 @@ function makeControlVariables(command: EventCommand): Node[] {
   const extra: number | undefined = command.params[5];
 
   if (from === to) {
-    result.push(createSpanNode(`Variable ${from}`, "variable"));
+    result.push(lookupNode(from, "vars", context));
   } else {
     result.push(document.createTextNode("Variables "));
     result.push(createSpanNode(from.toString(), "value"));
@@ -805,7 +776,7 @@ function makeControlVariables(command: EventCommand): Node[] {
       result.push(createSpanNode(operand.toString(), "value"));
       break;
     case 1: // variable
-      result.push(createSpanNode(`Variable ${operand}`, "variable"));
+      result.push(lookupNode(operand, "vars", context));
       break;
     case 2: // random
       result.push(document.createTextNode("random value from "));
@@ -815,7 +786,7 @@ function makeControlVariables(command: EventCommand): Node[] {
       break;
     case 3: // item
       result.push(document.createTextNode(`# of `));
-      result.push(createSpanNode(`Item ${operand.toString()}`, "item"));
+      result.push(lookupNode(operand, "items", context));
       result.push(document.createTextNode(` carried`));
       break;
     case 6: {
@@ -841,7 +812,7 @@ function makeControlVariables(command: EventCommand): Node[] {
           par = "terrain tag";
           break;
       }
-      result.push(createSpanNode(`Character ${operand}`, "character"));
+      result.push(lookupNode(operand, "actors", context));
       result.push(document.createTextNode(` ${par}`));
       break;
     }
@@ -961,13 +932,13 @@ function makeShowAnimation(command: EventCommand, context: Context): Node[] {
   ];
 }
 
-function makeSetMoveRoute(command: EventCommand): Node {
+function makeSetMoveRoute(command: EventCommand, context: Context): Node {
   const details = document.createElement("details") as HTMLDetailsElement;
   const summary = document.createElement("summary");
   const content = document.createElement("div");
   content.classList.add("code");
   summary.textContent = "Set Move Route for ";
-  summary.append(createSpanNode(`Character ${command.params[0]}`, "character"));
+  summary.appendChild(lookupNode(command.params[0], "actors", context));
   details.appendChild(summary);
   content.append(JSON.stringify(command.params[1]));
   details.appendChild(content);
@@ -981,7 +952,7 @@ function makeCallCommonEvent(command: EventCommand): Node[] {
   ];
 }
 
-function makeShowPicture(command: EventCommand): Node[] {
+function makeShowPicture(command: EventCommand, context: Context): Node[] {
   const id = command.params[0] as number;
   const name = command.params[1] as string;
   const origin = command.params[2] as number;
@@ -993,14 +964,12 @@ function makeShowPicture(command: EventCommand): Node[] {
   const opacity = command.params[8] as number;
   const blendType = command.params[9] as number;
 
-  const xNode = createSpanNode(
-    literal ? x.toString() : `Variable ${x}`,
-    literal ? "value" : "variable",
-  );
-  const yNode = createSpanNode(
-    literal ? y.toString() : `Variable ${y}`,
-    literal ? "value" : "variable",
-  );
+  const xNode = literal
+    ? createSpanNode(x.toString(), "value")
+    : lookupNode(x, "vars", context);
+  const yNode = literal
+    ? createSpanNode(y.toString(), "value")
+    : lookupNode(y, "vars", context);
 
   return [
     document.createTextNode("Show Picture "),
@@ -1024,7 +993,7 @@ function makeShowPicture(command: EventCommand): Node[] {
   ];
 }
 
-function makeMovePicture(command: EventCommand): Node[] {
+function makeMovePicture(command: EventCommand, context: Context): Node[] {
   const id = command.params[0] as number;
   const duration = command.params[1] as string;
   const origin = command.params[2] as number;
@@ -1036,14 +1005,12 @@ function makeMovePicture(command: EventCommand): Node[] {
   const opacity = command.params[8] as number;
   const blendType = command.params[9] as number;
 
-  const xNode = createSpanNode(
-    literal ? x.toString() : `Variable ${x}`,
-    literal ? "value" : "variable",
-  );
-  const yNode = createSpanNode(
-    literal ? y.toString() : `Variable ${y}`,
-    literal ? "value" : "variable",
-  );
+  const xNode = literal
+    ? createSpanNode(x.toString(), "value")
+    : lookupNode(x, "vars", context);
+  const yNode = literal
+    ? createSpanNode(y.toString(), "value")
+    : lookupNode(y, "vars", context);
 
   return [
     document.createTextNode("Move Picture "),
