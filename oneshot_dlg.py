@@ -126,7 +126,7 @@ def do_2k3(args: Namespace) -> None:
     del emt
 
     if not args.dry_run:
-        with(open(out_path / "maps.json", "w")) as file:
+        with open(out_path / "maps.json", "w") as file:
             save(map_names, file, args.pretty)
     # endregion
 
@@ -178,7 +178,7 @@ def do_2k3(args: Namespace) -> None:
                 out_pages.append(out_page)
             out_event["pages"] = out_pages
             out_events.append(out_event)
-        out = {"name": map_name, "id": map_id,  "events": out_events}
+        out = {"name": map_name, "id": map_id, "events": out_events}
 
         if not args.dry_run:
             with open(out_path / f"map{map_id}.json", "w") as file:
@@ -253,12 +253,56 @@ def do_xp(args: Namespace) -> None:
     map_names: dict[int, str] = {}
     for map_ in map_infos:
         map_names[int(map_)] = map_infos[map_]["name"]
-    
+
     if not args.dry_run:
         with open(out_path / "maps.json", "w") as file:
             logger.debug("saving map names")
             save(map_names, file, args.pretty)
     # endregion
+
+    # region read misc names
+    logger.info("loading item names")
+    item_names: list[str] = []
+
+    with open(in_path / "Items.json") as file:
+        items: list[dict] = json.load(file)
+    del items[0]
+    for item in items:
+        item_names.append(item["name"])
+
+    logger.info("loading switches and vars")
+
+    with open(in_path / "System.json") as file:
+        system: dict = json.load(file)
+
+    switches = system["switches"]
+    del switches[0]
+
+    variables = system["variables"]
+    del variables[0]
+
+    characters: list[str] = []
+    logger.info("loading character names")
+    with open(in_path / "Actors.json") as file:
+        actors = json.load(file)
+
+    del actors[0]
+    for actor in actors:
+        characters.append(actor["name"])
+
+    out = {
+        "items": items,
+        "switches": switches,
+        "vars": variables,
+        "actors": characters,
+    }
+    if not args.dry_run:
+        with open(out_path / "misc.json", "w") as file:
+            save(out, file, args.pretty)
+
+    del items, system, actors
+    # endregion
+
 
     # region process files
     for p in in_path.iterdir():
@@ -307,7 +351,7 @@ def do_xp(args: Namespace) -> None:
                     with open(scripts_path / f"{name}.rb", "w") as file:
                         logger.debug(f"writing script {name}")
                         file.write(src)
-    #endregion
+    # endregion
 
     logger.info("done processing XP")
 
