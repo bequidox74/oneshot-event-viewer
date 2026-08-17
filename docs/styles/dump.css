@@ -11,6 +11,7 @@
 }
 
 details {
+  width: 100%;
   margin-top: 0.5em;
   margin-bottom: 0.5em;
 }
@@ -28,11 +29,12 @@ summary > h3 {
 #root h2 {
   margin-top: 0.5em;
   margin-bottom: 0.5em;
+  font-size: 1.3em;
+}
+#root h3 {
+  font-size: 1em;
 }
 
-.event {
-  margin-left: 1.5em;
-}
 .event .event-details {
   margin-top: 0.3em;
   margin-left: 1em;
@@ -54,15 +56,6 @@ ul.choices {
 .page .page-cond {
   margin-top: 0.5em;
   margin-left: 0.5em;
-}
-
-.commands {
-  margin-top: 1em;
-  margin-bottom: 1em;
-  margin-left: 1em;
-}
-.command .command {
-  margin-left: 1.5em;
 }
 
 .on {
@@ -151,16 +144,27 @@ ul.choices {
   text-decoration: underline;
 }
 
+.commands {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  margin-left: 1.4em;
+}
 .command {
-  margin: 0.5em;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  margin-left: 0;
+  margin-right: 0;
   max-width: 40em;
 }
 .command:not(:has(> .dialogue-box)) {
   padding: 0.4em;
   padding-right: 0;
-  margin-right: 0;
+  padding-bottom: 0;
   outline: 2px solid #532b89;
   border-right: none;
+}
+.command .command {
+  margin-left: 0.8em;
 }
 
 span.code {
@@ -178,7 +182,10 @@ div.code {
   padding-right: 8px;
   padding-top: 4px;
   padding-bottom: 4px;
-  margin-right: 0.4em;
+
+  margin-top: 0.4em;
+  margin-bottom: 0.4em;
+
   font-size: 0.9em;
 }
 

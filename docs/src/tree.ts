@@ -143,6 +143,7 @@ function makePage(
         lookupNode(page.condition.switch1, "switches", context),
         document.createTextNode(" is "),
         createSpanNode("ON", "on"),
+        document.createTextNode(":"),
       );
       container.appendChild(div);
     }
@@ -154,6 +155,7 @@ function makePage(
         lookupNode(page.condition.switch2, "switches", context),
         document.createTextNode(" is "),
         createSpanNode("ON", "on"),
+        document.createTextNode(":"),
       );
       container.appendChild(div);
     }
@@ -168,6 +170,7 @@ function makePage(
         ),
         document.createTextNode(" is "),
         createSpanNode("ON", "on"),
+        document.createTextNode(":"),
       );
       container.appendChild(div);
     }
@@ -179,6 +182,7 @@ function makePage(
         lookupNode(page.condition.var, "vars", context),
         document.createTextNode(" >= "),
         createSpanNode(page.condition.value.toString(), "value"),
+        document.createTextNode(":"),
       );
       container.appendChild(div);
     }
