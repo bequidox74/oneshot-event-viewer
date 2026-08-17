@@ -1057,7 +1057,7 @@ function makeChangeItems(command: EventCommand, context: Context): Node[] {
   const operand = command.params[3] as number;
 
   return [
-    document.createTextNode(operation ? "Increase" : "Decrease"),
+    document.createTextNode(operation == 0 ? "Increase" : "Decrease"),
     document.createTextNode(" amount of "),
     lookupNode(item, "items", context),
     document.createTextNode(" by "),
