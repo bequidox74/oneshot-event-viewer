@@ -48,3 +48,10 @@ export type AudioFile = {
   volume: number;
   pitch: number;
 };
+
+export type MiscDefinitions = {
+  items: string[];
+  vars: string[];
+  switches: string[];
+  actors: string[];
+};

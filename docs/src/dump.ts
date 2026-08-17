@@ -28,11 +28,19 @@ toggleNonDialogue.onclick = () => {
   window.location.search = newParams.toString();
 };
 
+const miscDefs = await fetch(`data/${game}/misc.json`).then((res) =>
+  res.json(),
+);
+const context = {
+  misc: miscDefs,
+  skip: skip,
+};
+
 if (map === "common") {
   const events: CommonEvents = await fetch(`data/${game}/common.json`).then(
     (res) => res.json(),
   );
-  const tree = makeCommonEvents(events, skip);
+  const tree = makeCommonEvents(events, context);
   root.appendChild(tree);
 } else {
   const files: string[] = [];
@@ -53,7 +61,7 @@ if (map === "common") {
 
   const loadedMaps = await Promise.all(promises);
   for (const map of loadedMaps) {
-    const tree = makeMap(map, skip);
+    const tree = makeMap(map, context);
     root.appendChild(tree);
   }
 }

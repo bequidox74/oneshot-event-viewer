@@ -291,7 +291,7 @@ def do_xp(args: Namespace) -> None:
         characters.append(actor["name"])
 
     out = {
-        "items": items,
+        "items": item_names,
         "switches": switches,
         "vars": variables,
         "actors": characters,

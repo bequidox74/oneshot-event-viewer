@@ -1,3 +1,4 @@
+import type { Context } from "./tree";
 import type { AudioFile, EventCommand } from "./types";
 import { createSpanNode } from "./utils";
 
@@ -19,35 +20,51 @@ const CODE_TO_VARIABLE_OP: { [key: number]: string } = {
   5: "%=",
 };
 
-function getVariable(id: number): string {
-  return `Variable ${id}`;
+function lookupNode(
+  id: number,
+  property: "items" | "vars" | "switches" | "actors",
+  context: Context,
+): Node {
+  let cls;
+  let label;
+  switch (property) {
+    case "items":
+      cls = "item";
+      label = "Item";
+      break;
+    case "vars":
+      cls = "variable";
+      label = "Variable";
+      break;
+    case "switches":
+      cls = "switch";
+      label = "Switch";
+      break;
+    case "actors":
+      cls = "character";
+      label = "Character";
+      break;
+  }
+
+  const title = `${label} ${id}`;
+  let text = context.misc[property][id - 1];
+  if (!text) text = title;
+
+  const out = createSpanNode(text, cls);
+  out.title = title;
+  return out;
 }
 
-function getItem(id: number): string {
-  return `Item ${id}`;
+function varValueNode(type: number, operand: number, context: Context): Node {
+  return type == 0
+    ? createSpanNode(operand.toString(), "value")
+    : lookupNode(operand, "vars", context);
 }
 
-function characterNode(char: number): Node {
-  return createSpanNode(`Character ${char}`, "character");
-}
-
-function itemNode(id: number): Node {
-  return createSpanNode(getItem(id), "item");
-}
-
-function varValueNode(type: number, operand: number): Node {
-  const inv = type == 0;
-  return createSpanNode(
-    inv ? operand.toString() : getVariable(operand),
-    inv ? "value" : "variable",
-  );
-}
-
-function actorNode(id: number): Node {
-  return createSpanNode(`Actor ${id}`, "actor");
-}
-
-export function makeCommand(command: EventCommand): Node | Node[] {
+export function makeCommand(
+  command: EventCommand,
+  context: Context,
+): Node | Node[] {
   // see https://github.com/elizagamedev/mkxp-oneshot/blob/master/scripts/Interpreter_2.rb
   const params = command.params;
   switch (command.code) {
@@ -65,9 +82,9 @@ export function makeCommand(command: EventCommand): Node | Node[] {
     case 103: // Input Number
       return [
         document.createTextNode("Input Number into "),
-        createSpanNode(getVariable(params[0] as number), "variable"),
+        lookupNode(params[0] as number, "vars", context),
         document.createTextNode(" with max digits = "),
-        createSpanNode(getVariable(params[1] as number), "variable"),
+        lookupNode(params[1] as number, "vars", context),
       ];
     case 104:
       return makeChangeTextOptions(command);
@@ -77,7 +94,7 @@ export function makeCommand(command: EventCommand): Node | Node[] {
         createSpanNode(params[0] as string, "value"),
       ];
     case 111:
-      return makeCondition(command);
+      return makeCondition(command, context);
     case 112:
       return document.createTextNode("Loop");
     case 113:
@@ -101,19 +118,19 @@ export function makeCommand(command: EventCommand): Node | Node[] {
         document.createTextNode('"'),
       ];
     case 121:
-      return makeControlSwitches(command);
+      return makeControlSwitches(command, context);
     case 122:
       return makeControlVariables(command);
     case 123:
       return makeControlSelfSwitch(command);
     case 126: // Change Items
-      return makeChangeItems(command);
+      return makeChangeItems(command, context);
     case 129: {
       // Change Party Member
       const add = params[1] == 0;
       const result = [
         document.createTextNode(add ? "Add " : "Remove "),
-        actorNode(params[0] as number),
+        lookupNode(params[0] as number, "actors", context),
         document.createTextNode(add ? " to party" : " from party"),
       ];
       if (add) {
@@ -131,15 +148,15 @@ export function makeCommand(command: EventCommand): Node | Node[] {
         document.createTextNode('"'),
       ];
     case 201:
-      return makeTransferPlayer(command);
+      return makeTransferPlayer(command, context);
     case 202:
-      return makeSetEventLocation(command);
+      return makeSetEventLocation(command, context);
     case 203:
       return makeScrollMap(command);
     case 204:
       return makeChangeMapSettings(command);
     case 207:
-      return makeShowAnimation(command);
+      return makeShowAnimation(command, context);
     case 209:
       return makeSetMoveRoute(command);
     case 210:
@@ -213,7 +230,7 @@ export function makeCommand(command: EventCommand): Node | Node[] {
     case 322:
       return [
         document.createTextNode("Change Actor Graphic of "),
-        actorNode(params[0] as number),
+        lookupNode(params[0] as number, "actors", context),
         document.createTextNode(' to "'),
         createSpanNode(params[1] as string, "value"),
         document.createTextNode('", hue '),
@@ -425,7 +442,7 @@ function makeInlinePortraitChange(face: string): HTMLElement {
   root.classList.add("inline", "inline-change");
   root.textContent = "@";
   root.title = "Change Portrait to " + face;
-  
+
   const portrait = makePortrait(face);
   root.appendChild(portrait);
   return root;
@@ -439,7 +456,7 @@ function makeInlineVariable(index: number, color: number): HTMLElement {
   return root;
 }
 
-function makeCondition(command: EventCommand): Node[] {
+function makeCondition(command: EventCommand, context: Context): Node[] {
   // see https://github.com/elizagamedev/mkxp-oneshot/blob/87819a0f6613befaf295eb0d6a09c19e29931e47/scripts/Interpreter_3.rb#L228
   const result: Node[] = [];
   result.push(document.createTextNode("If "));
@@ -448,11 +465,7 @@ function makeCondition(command: EventCommand): Node[] {
   switch (type) {
     case 0: {
       // switch
-      const switchSpan = document.createElement("span");
-      switchSpan.classList.add("switch");
-      switchSpan.textContent = `Switch ${command.params[1]}`;
-      result.push(switchSpan);
-
+      result.push(lookupNode(command.params[1], "switches", context));
       result.push(document.createTextNode(" is "));
 
       const onSpan = document.createElement("span");
@@ -464,10 +477,7 @@ function makeCondition(command: EventCommand): Node[] {
     }
     case 1: {
       // variable
-      const varSpan = document.createElement("span");
-      varSpan.classList.add("variable");
-      varSpan.textContent = `Variable ${command.params[1]}`;
-      result.push(varSpan);
+      result.push(lookupNode(command.params[1], "vars", context));
 
       result.push(
         document.createTextNode(
@@ -475,12 +485,7 @@ function makeCondition(command: EventCommand): Node[] {
         ),
       );
 
-      const valueSpan = document.createElement("span");
-      const isInvariable = command.params[3] == 0;
-      valueSpan.classList.add(isInvariable ? "value" : "variable");
-      const text = (isInvariable ? "" : "Variable ") + command.params[2];
-      valueSpan.textContent = text;
-      result.push(valueSpan);
+      result.push(varValueNode(command.params[3], command.params[2], context));
       break;
     }
     case 2: {
@@ -505,13 +510,10 @@ function makeCondition(command: EventCommand): Node[] {
       const type = command.params[2] as number;
       if (type == 0) {
         // in party
-        const span = document.createElement("span");
-        span.classList.add("actor");
-        span.textContent = "Actor " + command.params[1];
-        result.push(span);
+        result.push(lookupNode(actor, "actors", context));
         result.push(document.createTextNode(" is in party"));
       } else {
-        console.log("Unknown actor check type: " + type);
+        console.error("Unknown actor check type: " + type);
         result.push(
           document.createTextNode(`actor check type ${type} on actor ${actor}`),
         );
@@ -519,10 +521,7 @@ function makeCondition(command: EventCommand): Node[] {
       break;
     }
     case 6: {
-      const charSpan = document.createElement("span");
-      charSpan.classList.add("character");
-      charSpan.textContent = "Character " + command.params[1];
-      result.push(charSpan);
+      result.push(lookupNode(command.params[1], "actors", context));
 
       result.push(document.createTextNode("'s direction is "));
 
@@ -539,6 +538,7 @@ function makeCondition(command: EventCommand): Node[] {
       span.classList.add("item");
       span.textContent = "Item " + command.params[1];
       result.push(span);
+      result.push(lookupNode(command.params[1], "items", context));
       break;
     }
     case 11: {
@@ -755,14 +755,14 @@ function makePlayMe(command: EventCommand): Node[] {
   ];
 }
 
-function makeControlSwitches(command: EventCommand): Node[] {
+function makeControlSwitches(command: EventCommand, context: Context): Node[] {
   const result: Node[] = [];
   const from: number = command.params[0];
   const to: number = command.params[1];
 
   if (from === to) {
     result.push(document.createTextNode("Turn "));
-    result.push(createSpanNode(`Switch ${from}`, "switch"));
+    result.push(lookupNode(from, "switches", context));
   } else {
     result.push(document.createTextNode("Turn Switches "));
     result.push(createSpanNode(command.params[0], "value"));
@@ -952,10 +952,10 @@ function makeChangeMapSettings(command: EventCommand): Node[] {
   }
 }
 
-function makeShowAnimation(command: EventCommand): Node[] {
+function makeShowAnimation(command: EventCommand, context: Context): Node[] {
   return [
     document.createTextNode("Set "),
-    characterNode(command.params[0]),
+    lookupNode(command.params[0], "actors", context),
     document.createTextNode("'s animation ID to "),
     createSpanNode(command.params[1], "value"),
   ];
@@ -1083,7 +1083,7 @@ function makeChangeTextOptions(command: EventCommand): Node[] {
   ];
 }
 
-function makeChangeItems(command: EventCommand): Node[] {
+function makeChangeItems(command: EventCommand, context: Context): Node[] {
   const item = command.params[0] as number;
   const operation = command.params[1] as number;
   const operandType = command.params[2] as number;
@@ -1092,47 +1092,47 @@ function makeChangeItems(command: EventCommand): Node[] {
   return [
     document.createTextNode(operation ? "Increase" : "Decrease"),
     document.createTextNode(" amount of "),
-    itemNode(item),
+    lookupNode(item, "items", context),
     document.createTextNode(" by "),
-    varValueNode(operandType, operand),
+    varValueNode(operandType, operand, context),
   ];
 }
 
-function makeTransferPlayer(command: EventCommand): Node[] {
+function makeTransferPlayer(command: EventCommand, context: Context): Node[] {
   const type = command.params[0] as number;
   return [
     document.createTextNode("Transfer Player to map "),
-    varValueNode(type, command.params[1]),
+    varValueNode(type, command.params[1], context),
     document.createTextNode(" to ("),
-    varValueNode(type, command.params[2]),
+    varValueNode(type, command.params[2], context),
     document.createTextNode(","),
-    varValueNode(type, command.params[3]),
+    varValueNode(type, command.params[3], context),
     document.createTextNode("), direction "),
-    varValueNode(type, command.params[4]),
+    varValueNode(type, command.params[4], context),
     document.createTextNode(" "),
     document.createTextNode(command.params[5] == 0 ? "with" : "without"),
     document.createTextNode(" fade"),
   ];
 }
 
-function makeSetEventLocation(command: EventCommand): Node[] {
+function makeSetEventLocation(command: EventCommand, context: Context): Node[] {
   const appointment = command.params[1] as number;
   if (appointment == 1 || appointment == 2) {
     return [
       document.createTextNode("Move "),
-      characterNode(command.params[0]),
+      lookupNode(command.params[0], "actors", context),
       document.createTextNode(" to ("),
-      varValueNode(appointment, command.params[1]),
+      varValueNode(appointment, command.params[1], context),
       document.createTextNode(","),
-      varValueNode(appointment, command.params[2]),
+      varValueNode(appointment, command.params[2], context),
       document.createTextNode(")"),
     ];
   } else {
     return [
       document.createTextNode("Swap "),
-      characterNode(command.params[0]),
+      lookupNode(command.params[0], "actors", context),
       document.createTextNode(" and "),
-      characterNode(command.params[2]),
+      lookupNode(command.params[2], "actors", context),
       document.createTextNode("'s locations"),
     ];
   }

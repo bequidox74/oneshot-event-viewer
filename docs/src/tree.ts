@@ -6,13 +6,19 @@ import type {
   EventPage,
   MapDefinition,
   MapEvent,
+  MiscDefinitions,
   RpgEvent,
 } from "./types";
 import { createCollapsibleHeading, createSpanNode } from "./utils";
 
+export type Context = {
+  misc: MiscDefinitions;
+  skip: boolean;
+};
+
 const DIALOGUE_ONLY_CODES = [101, 102, 106, 111, 355, 411];
 
-export function makeCommonEvents(events: CommonEvents, skipEvents: boolean): Node {
+export function makeCommonEvents(events: CommonEvents, context: Context): Node {
   const root = document.createElement("div");
   root.id = "common";
 
@@ -23,13 +29,13 @@ export function makeCommonEvents(events: CommonEvents, skipEvents: boolean): Nod
   root.appendChild(details);
 
   for (const event of events) {
-    details.appendChild(makeCommonEvent(event, root.id, skipEvents));
+    details.appendChild(makeCommonEvent(event, root.id, context));
   }
 
   return root;
 }
 
-export function makeMap(map: MapDefinition, skipEvents: boolean): Node {
+export function makeMap(map: MapDefinition, context: Context): Node {
   const root = document.createElement("div");
   root.id = `map${map.id}`;
 
@@ -41,13 +47,17 @@ export function makeMap(map: MapDefinition, skipEvents: boolean): Node {
   root.appendChild(details);
 
   for (const event of map.events) {
-    details.appendChild(makeMapEvent(event, root.id, skipEvents));
+    details.appendChild(makeMapEvent(event, root.id, context));
   }
 
   return root;
 }
 
-function makeCommonEvent(event: CommonEvent, parentId: string, skipEvents: boolean): Node {
+function makeCommonEvent(
+  event: CommonEvent,
+  parentId: string,
+  context: Context,
+): Node {
   const [root, content] = makeEventBase(event, parentId);
 
   const info = document.createElement("div");
@@ -74,11 +84,15 @@ function makeCommonEvent(event: CommonEvent, parentId: string, skipEvents: boole
   }
 
   content.appendChild(info);
-  content.appendChild(makeEventCommands(event.commands, skipEvents));
+  content.appendChild(makeEventCommands(event.commands, context));
   return root;
 }
 
-function makeMapEvent(event: MapEvent, parentId: string, skipEvents: boolean): Node {
+function makeMapEvent(
+  event: MapEvent,
+  parentId: string,
+  context: Context,
+): Node {
   const [root, content] = makeEventBase(event, parentId);
 
   const info = document.createElement("div");
@@ -96,13 +110,18 @@ function makeMapEvent(event: MapEvent, parentId: string, skipEvents: boolean): N
 
   content.appendChild(info);
   for (const [i, page] of event.pages.entries()) {
-    content.appendChild(makePage(page, root.id, i, skipEvents));
+    content.appendChild(makePage(page, root.id, i, context));
   }
 
   return root;
 }
 
-function makePage(page: EventPage, parentId: string, index: number, skipEvents: boolean): Node {
+function makePage(
+  page: EventPage,
+  parentId: string,
+  index: number,
+  context: Context,
+): Node {
   const root = document.createElement("div");
   root.id = parentId + `-p${index}`;
   root.classList.add("page");
@@ -165,7 +184,7 @@ function makePage(page: EventPage, parentId: string, index: number, skipEvents: 
     details.appendChild(container);
   }
 
-  details.appendChild(makeEventCommands(page.list, skipEvents));
+  details.appendChild(makeEventCommands(page.list, context));
   root.appendChild(details);
 
   return root;
@@ -197,12 +216,12 @@ function makeEventBase(
   return [root, content];
 }
 
-function makeEventCommands(commands: EventCommand[], skipEvents: boolean): Node {
+function makeEventCommands(commands: EventCommand[], context: Context): Node {
   const root = document.createElement("div");
   root.classList.add("commands");
-  
+
   function shouldSkip(code: number): boolean {
-    return skipEvents && !DIALOGUE_ONLY_CODES.includes(code);
+    return context.skip && !DIALOGUE_ONLY_CODES.includes(code);
   }
 
   const stack: Node[] = [root];
@@ -216,7 +235,7 @@ function makeEventCommands(commands: EventCommand[], skipEvents: boolean): Node 
 
     const commandDiv = document.createElement("div");
     commandDiv.classList.add("command");
-    const result = makeCommand(command);
+    const result = makeCommand(command, context);
     if (Array.isArray(result)) commandDiv.append(...result);
     else commandDiv.append(result);
 
