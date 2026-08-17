@@ -9,5 +9,5 @@ export default defineConfig({
       }
     },
   },
-  base: "/oneshot-event-viewer/",
+  base: process.env.BASE_URL,
 });
