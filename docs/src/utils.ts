@@ -115,13 +115,9 @@ export function addTooltip(
 
 export function getBoolOption(key: string): boolean {
   const value = sessionStorage.getItem(key);
-  return (value == null) ? false : (value === "true");
+  return value == null ? false : value === "true";
 }
 
 export function setBoolOption(key: string, value: boolean): void {
   sessionStorage.setItem(key, value.toString());
-}
-
-export function makeCheckbox(value: boolean): string {
-  return value ? "[x]" : "[ ]";
 }

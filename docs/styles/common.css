@@ -18,7 +18,9 @@
 
 @font-face {
   font-family: "Terminus";
+  font-display: block;
   src: url("/fonts/Terminus.ttf");
+  unicode-range: U+00-7F;
 }
 
 body {
@@ -64,13 +66,6 @@ img {
   margin-bottom: 1em;
   padding-left: 2em;
   padding-right: 2em;
-}
-
-#navigation {
-  margin-bottom: 0.5em;
-}
-#navigation * {
-  margin-right: 0.5em;
 }
 
 details > summary {

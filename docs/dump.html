@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="stylesheet" href="styles/styles.css" />
+    <link rel="stylesheet" href="styles/common.css" />
     <link rel="stylesheet" href="styles/dump.css" />
     <link rel="icon" href="icon.png" />
     <title>OneShot Events Viewer</title>
@@ -10,21 +10,27 @@
 
   <body>
     <div id="content" class="panel">
-      <div id="navigation">
+      <div id="header">
         <a href="%BASE_URL%">&lt; back</a>
-        <span id="expand" class="clickable">expand all</span>
-        <span id="collapse" class="clickable">collapse all</span>
+        <button id="expand">Expand all</button>
+        <button id="collapse">Collapse all</button>
+        <button id="dialogue-toggle">
+          <div id="dialogue-check" class="checkbox"></div>
+          Filter dialogue
+        </button>
+        <button id="inline-toggle">
+          <div id="inline-check" class="checkbox"></div>
+          Show inline
+        </button>
 
-        <br />
-
-        <span id="dialogue-toggle" class="clickable">
-          <span id="dialogue-check">[ ]</span>only dialogue
-        </span>
-        <span id="inline-toggle" class="clickable">
-          <span id="inline-check">[x]</span>show inline
-        </span>
+        <div>
+          <input id="playername" type="text" placeholder="Player" />
+          <button id="playername-set">Set</button>
+        </div>
       </div>
+
       <h1 id="status">Loading...</h1>
+
       <div id="root"></div>
     </div>
 
