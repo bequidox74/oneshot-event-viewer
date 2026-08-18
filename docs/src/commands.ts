@@ -35,11 +35,14 @@ type Tone = {
 
 function makeTone(tone: Tone): Node[] {
   const red = createSpanNode(`R:${tone.red}`, "color1");
-  const green = createSpanNode(`G:${tone.red}`, "color2");
-  const blue = createSpanNode(`B:${tone.red}`, "color4");
-  const gray = createSpanNode(`g:${tone.red}`, "color7");
+  const green = createSpanNode(`G:${tone.green}`, "color2");
+  const blue = createSpanNode(`B:${tone.blue}`, "color4");
+  const gray = createSpanNode(`g:${tone.gray}`, "color7");
 
-  // TODO: tooltips
+  addTooltip(red, `Red = ${tone.red}`);
+  addTooltip(green, `Green = ${tone.green}`);
+  addTooltip(blue, `Blue = ${tone.blue}`);
+  addTooltip(gray, `Gray = ${tone.gray}`);
 
   return [
     red,
