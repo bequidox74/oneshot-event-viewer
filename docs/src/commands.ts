@@ -37,22 +37,27 @@ function makeTone(tone: Tone): Node[] {
   const red = createSpanNode(`R:${tone.red}`, "color1");
   const green = createSpanNode(`G:${tone.green}`, "color2");
   const blue = createSpanNode(`B:${tone.blue}`, "color4");
-  const gray = createSpanNode(`g:${tone.gray}`, "color7");
+
+  let gray: HTMLSpanElement | null = null;
+  if (tone.gray) gray = createSpanNode(`g:${tone.gray}`, "color7");
 
   addTooltip(red, `Red = ${tone.red}`);
   addTooltip(green, `Green = ${tone.green}`);
   addTooltip(blue, `Blue = ${tone.blue}`);
-  addTooltip(gray, `Gray = ${tone.gray}`);
+  if (gray) addTooltip(gray, `Gray = ${tone.gray}`);
 
-  return [
+  const result: Node[] = [
     red,
     document.createTextNode(", "),
     green,
     document.createTextNode(", "),
     blue,
-    document.createTextNode(", "),
-    gray,
   ];
+  if (gray) {
+    result.push(document.createTextNode(", "));
+    result.push(gray);
+  }
+  return result;
 }
 
 export function makeCommand(
@@ -177,7 +182,7 @@ export function makeCommand(
     case 224: // Screen Flash
       return [
         document.createTextNode("Start Screen Flash to color "),
-        createSpanNode(params[0] as string, "value"),
+        ...makeTone(params[0].Color),
         document.createTextNode(" over "),
         createSpanNode(params[1] as string, "value"),
         document.createTextNode(" frames"),
