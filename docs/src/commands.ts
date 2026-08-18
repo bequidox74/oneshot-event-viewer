@@ -557,9 +557,10 @@ function makeCondition(command: EventCommand, context: Context): Node[] {
       result.push(span);
 
       if (code.startsWith("EdText.")) {
-        result.push(makeEdText(code, context));
-        addColon = false;
+        const box = makeEdText(code, context);
+        if (box) result.push(box);
       }
+      addColon = false;
       break;
     }
     default: {
@@ -621,12 +622,19 @@ function makeScript(command: EventCommand, context: Context): Node[] {
   script.textContent = code;
   result.push(script);
 
-  if (code.startsWith("EdText.")) result.push(makeEdText(code, context));
+  if (code.startsWith("EdText.")) {
+    const box = makeEdText(code, context);
+    if (box) result.push(box);
+  }
 
   return result;
 }
 
-function makeEdText(code: string, context: Context): Node {
+function makeEdText(code: string, context: Context): Node | null {
+  const quote = code.indexOf('"');
+  if (quote < 0) return null;
+  const funcName = code.substring(7, quote - 1);
+
   const box = document.createElement("div");
   box.classList.add("ed-box");
 
@@ -652,10 +660,7 @@ function makeEdText(code: string, context: Context): Node {
   const boxBtns = document.createElement("div");
   boxBtns.classList.add("ed-box-btns");
 
-  const paren = code.indexOf("(");
-  const funcName = code.substring(7, paren);
-
-  const text = code.substring(paren + 2, code.indexOf(")") - 1);
+  const text = code.substring(quote + 1, code.lastIndexOf('"'));
   const parts = parseEscapes(text.replaceAll("\\\\", "\\"), context); // only used to handle \p
   const textNode = document.createElement("div");
   textNode.classList.add("ed-box-text");
