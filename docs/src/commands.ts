@@ -538,10 +538,6 @@ function makeCondition(command: EventCommand, context: Context): Node[] {
     case 8: {
       // item
       result.push(document.createTextNode("player has "));
-      const span = document.createElement("span");
-      span.classList.add("item");
-      span.textContent = "Item " + command.params[1];
-      result.push(span);
       result.push(lookupNode(command.params[1], "items", context));
       break;
     }

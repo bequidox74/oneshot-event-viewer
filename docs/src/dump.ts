@@ -1,4 +1,4 @@
-import { DEFAULT_PLAYER_NAME, options } from "./options";
+import { options } from "./options";
 import { makeCommonEvents, makeMap } from "./tree";
 import type { CommonEvents, MapDefinition } from "./types";
 import { setCheckboxOn } from "./utils";

@@ -22,12 +22,12 @@ export const options = {
   set showInline(on: boolean) {
     setBoolOption(SHOW_INLINE, on);
   },
-  
+
   get playerName(): string {
     return sessionStorage.getItem(PLAYER_NAME) ?? DEFAULT_PLAYER_NAME;
   },
 
   set playerName(name: string) {
     sessionStorage.setItem(PLAYER_NAME, name);
-  }
+  },
 };
