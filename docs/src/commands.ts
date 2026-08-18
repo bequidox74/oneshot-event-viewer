@@ -1098,10 +1098,12 @@ function makeTransferPlayer(command: EventCommand, context: Context): Node[] {
 
   const dirLabel = type == 0 ? "), facing " : "), direction = ";
   const dirLookupType = type == 0 ? "dir" : "vars";
+  const mapLookupType = type == 0 ? "map" : "vars";
+  const mapQuote = type == 0 ? '"' : "";
 
-  result.push(document.createTextNode("Transfer Player to map "));
-  result.push(varValueNode(type, command.params[1], context));
-  result.push(document.createTextNode(", position ("));
+  result.push(document.createTextNode(`Transfer Player to map ${mapQuote}`));
+  result.push(lookupNode(command.params[1], mapLookupType, context));
+  result.push(document.createTextNode(`${mapQuote}, position (`));
   result.push(varValueNode(type, command.params[2], context));
   result.push(document.createTextNode(","));
   result.push(varValueNode(type, command.params[3], context));

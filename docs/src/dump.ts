@@ -1,5 +1,5 @@
 import { options } from "./options";
-import { makeCommonEvents, makeMap } from "./tree";
+import { makeCommonEvents, makeMap, type Context } from "./tree";
 import type { CommonEvents, MapDefinition } from "./types";
 import { setCheckboxOn } from "./utils";
 
@@ -84,8 +84,13 @@ async function reload(): Promise<void> {
   status.hidden = false;
   root.replaceChildren();
 
-  const context = {
+  const maps: Record<string, string> = await fetch(
+    `data/${game}/maps.json`,
+  ).then((res) => res.json());
+
+  const context: Context = {
     misc: miscDefs,
+    maps: maps,
     dialogueOnly: options.dialogueOnly,
   };
 
@@ -98,9 +103,6 @@ async function reload(): Promise<void> {
   } else {
     const files: string[] = [];
     if (map === "all") {
-      const maps: Record<string, string> = await fetch(
-        `data/${game}/maps.json`,
-      ).then((res) => res.json());
       for (const id of Object.keys(maps))
         files.push(`data/${game}/map${id}.json`);
     } else {

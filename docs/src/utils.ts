@@ -65,7 +65,7 @@ export function elemNode(
 
 export function lookupNode(
   id: number,
-  type: "items" | "vars" | "switches" | "actors" | "dir",
+  type: "items" | "vars" | "switches" | "actors" | "dir" | "map",
   context: Context,
 ): Node {
   let cls;
@@ -91,6 +91,10 @@ export function lookupNode(
       cls = "value";
       label = "Direction";
       break;
+    case "map":
+      cls = "value";
+      label = "Map";
+      break;
   }
 
   let text: string = "";
@@ -110,6 +114,12 @@ export function lookupNode(
       case 8:
         text = "up";
         break;
+    }
+  } else if (type == "map") {
+    text = context.maps[id];
+    if (!text) {
+      text = "(unnamed)";
+      cls = "subtle";
     }
   } else {
     text = context.misc[type][id - 1];

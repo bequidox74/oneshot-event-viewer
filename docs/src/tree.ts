@@ -13,6 +13,7 @@ import { createCollapsibleHeading, createSpanNode, lookupNode } from "./utils";
 
 export type Context = {
   misc: MiscDefinitions;
+  maps: Record<string, string>;
   dialogueOnly: boolean;
 };
 
