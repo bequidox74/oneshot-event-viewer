@@ -1,6 +1,6 @@
 import type { Context } from "./tree";
 import type { AudioFile, EventCommand } from "./types";
-import { createSpanNode, lookupNode } from "./utils";
+import { addTooltip, createSpanNode, lookupNode } from "./utils";
 
 const CODE_TO_COMPARISON: { [key: number]: string } = {
   0: "==",
@@ -27,11 +27,11 @@ function varValueNode(type: number, operand: number, context: Context): Node {
 }
 
 type Tone = {
-  red: number,
-  green: number,
-  blue: number,
-  gray: number,
-}
+  red: number;
+  green: number;
+  blue: number;
+  gray: number;
+};
 
 function makeTone(tone: Tone): Node[] {
   const red = createSpanNode(`R:${tone.red}`, "color1");
@@ -160,7 +160,8 @@ export function makeCommand(
         createSpanNode(params[0] as string, "value"),
         document.createTextNode('"'),
       ];
-    case 223: { // Change Screen Color Tone
+    case 223: {
+      // Change Screen Color Tone
       const tone = params[0].Tone;
       return [
         document.createTextNode("Change Screen Color Tone to "),
@@ -410,7 +411,7 @@ function makeInlinePause(): HTMLElement {
   const root = document.createElement("span");
   root.classList.add("inline", "inline-pause");
   root.textContent = ".";
-  root.title = "Short Pause";
+  addTooltip(root, "Short Pause");
   return root;
 }
 
@@ -418,7 +419,7 @@ function makeInlineLongPause(): HTMLElement {
   const root = document.createElement("span");
   root.classList.add("inline", "inline-longpause");
   root.textContent = "|";
-  root.title = "Long Pause";
+  addTooltip(root, "Long Pause");
   return root;
 }
 
@@ -426,7 +427,7 @@ function makeInlineWait(): HTMLElement {
   const root = document.createElement("span");
   root.classList.add("inline", "inline-wait");
   root.textContent = ">";
-  root.title = "Wait for Action";
+  addTooltip(root, "Wait for Action");
   return root;
 }
 
@@ -434,10 +435,14 @@ function makeInlinePortraitChange(face: string): HTMLElement {
   const root = document.createElement("span");
   root.classList.add("inline", "inline-change");
   root.textContent = "@";
-  root.title = "Change Portrait to " + face;
 
   const portrait = makePortrait(face);
-  root.appendChild(portrait);
+  portrait.insertBefore(
+    createSpanNode("Set portrait:", "tooltip-text"),
+    portrait.firstChild,
+  );
+  addTooltip(root, portrait);
+
   return root;
 }
 

@@ -89,17 +89,26 @@ export function lookupNode(
       break;
   }
 
-  const title = `${label} ${id}`;
-  
   let text: string;
   if (property == "actors" && id <= 0) {
-    text = (id == 0) ? "This Event" : "Player";
+    text = id == 0 ? "This Event" : "Player";
   } else {
     text = context.misc[property][id - 1];
-    if (!text) text = title;
+    if (!text) text = `${label} ${id}`;
   }
 
   const out = createSpanNode(text, cls);
-  out.title = title;
+  addTooltip(out, `${label} ${id}`);
   return out;
+}
+
+export function addTooltip(
+  element: HTMLElement,
+  content: string | HTMLElement,
+): void {
+  element.classList.add("tooltip-base");
+  const contentElem =
+    content instanceof Node ? content : createSpanNode(content, "tooltip-text");
+  contentElem.classList.add("tooltip");
+  element.appendChild(contentElem);
 }

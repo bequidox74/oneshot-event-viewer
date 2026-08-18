@@ -123,20 +123,26 @@ ul.choices {
   margin-left: 2px;
   margin-right: 2px;
 }
-.inline-change {
+
+.tooltip-base {
   position: relative;
 }
-.inline-change .portrait-container {
+.tooltip-base .tooltip {
+  width: max-content;
   position: absolute;
   top: 4px;
   left: 4px;
-  display: none;
+  visibility: hidden;
   background-color: black;
   border: 2px solid var(--color-wme-purple);
-  padding: 0.2em;
+  padding: 0.4em;
+  z-index: 100;
 }
-.inline-change:hover .portrait-container {
-  display: block;
+.tooltip-base:hover .tooltip {
+  visibility: visible;
+}
+.tooltip-base .tooltip-text {
+  font-size: 0.8em;
 }
 
 .note {
