@@ -1,7 +1,10 @@
-import { options } from "./options";
+import { DEFAULT_PLAYER_NAME, options } from "./options";
 import { makeCommonEvents, makeMap } from "./tree";
 import type { CommonEvents, MapDefinition } from "./types";
 import { setCheckboxOn } from "./utils";
+
+const NAME_PLACEHOLDERS: ReadonlyArray<string> = ["Player", "Chat"];
+const FUNNY_PLACEHOLDER_CHANCE = 0.5;
 
 const urlParams = new URLSearchParams(window.location.search);
 const game = urlParams.get("game")!;
@@ -14,28 +17,48 @@ const miscDefs = await fetch(`data/${game}/misc.json`).then((res) =>
   res.json(),
 );
 
+const dialogueOnlyCheckbox = document.getElementById("dialogue-check")!;
+const showInlineCheckbox = document.getElementById("inline-check")!;
+const nameInput = document.getElementById("playername")! as HTMLInputElement;
+
+function updateNameInput(): void {
+  if (Math.random() < FUNNY_PLACEHOLDER_CHANCE) {
+    nameInput.placeholder =
+      NAME_PLACEHOLDERS[
+        1 + Math.floor(Math.random() * (NAME_PLACEHOLDERS.length - 1))
+      ];
+  } else {
+    nameInput.placeholder = NAME_PLACEHOLDERS[0];
+  }
+}
+
 function updateCheckboxes(): void {
-  const dialogueOnlyCheckbox = document.getElementById("dialogue-check")!;
-  const showInlineCheckbox = document.getElementById("inline-check")!;
-  setCheckboxOn(dialogueOnlyCheckbox, options.getDialogueOnly());
-  setCheckboxOn(showInlineCheckbox, options.getShowInline());
+  setCheckboxOn(dialogueOnlyCheckbox, options.dialogueOnly);
+  setCheckboxOn(showInlineCheckbox, options.showInline);
 }
 
 function updateShowInline(): void {
   document.querySelectorAll(".inline").forEach((e) => {
-    (e as HTMLElement).style.display = options.getShowInline() ? "" : "none";
+    (e as HTMLElement).style.display = options.showInline ? "" : "none";
+  });
+}
+
+function updatePlayerName(): void {
+  if (nameInput.value) options.playerName = nameInput.value;
+  document.querySelectorAll(".player").forEach((e) => {
+    e.textContent = options.playerName;
   });
 }
 
 function connectButtons(): void {
   document.getElementById("dialogue-toggle")!.onclick = () => {
-    options.setDialogueOnly(!options.getDialogueOnly());
+    options.dialogueOnly = !options.dialogueOnly;
     updateCheckboxes();
     reload();
   };
 
   document.getElementById("inline-toggle")!.onclick = () => {
-    options.setShowInline(!options.getShowInline());
+    options.showInline = !options.showInline;
     updateCheckboxes();
     updateShowInline();
   };
@@ -47,6 +70,14 @@ function connectButtons(): void {
   document.getElementById("collapse")!.onclick = () => {
     document.querySelectorAll("details").forEach((e) => (e.open = false));
   };
+
+  nameInput.addEventListener("keydown", (e) => {
+    if (e.key == "Enter") {
+      e.preventDefault();
+      updatePlayerName();
+    }
+  });
+  document.getElementById("playername-set")!.onclick = updatePlayerName;
 }
 
 async function reload(): Promise<void> {
@@ -55,7 +86,7 @@ async function reload(): Promise<void> {
 
   const context = {
     misc: miscDefs,
-    dialogueOnly: options.getDialogueOnly(),
+    dialogueOnly: options.dialogueOnly,
   };
 
   if (map === "common") {
@@ -89,10 +120,12 @@ async function reload(): Promise<void> {
   }
 
   updateShowInline();
+  updatePlayerName();
   status.hidden = true;
 }
 
-if (urlParams.has("dialogue")) options.setDialogueOnly(true);
+if (urlParams.has("dialogue")) options.dialogueOnly = true;
 connectButtons();
 updateCheckboxes();
+updateNameInput();
 reload();
