@@ -113,9 +113,9 @@ export function addTooltip(
   element.appendChild(contentElem);
 }
 
-export function getBoolOption(key: string): boolean {
+export function getBoolOption(key: string, def: boolean = false): boolean {
   const value = sessionStorage.getItem(key);
-  return value == null ? false : value === "true";
+  return value == null ? def : value === "true";
 }
 
 export function setBoolOption(key: string, value: boolean): void {
