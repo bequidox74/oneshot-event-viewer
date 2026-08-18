@@ -1,5 +1,6 @@
 import { makeCommonEvents, makeMap } from "./tree";
 import type { CommonEvents, MapDefinition } from "./types";
+import { getBoolOption, makeCheckbox, setBoolOption } from "./utils";
 
 document.title = "Loading...";
 
@@ -20,13 +21,36 @@ collapseAll.onclick = () => {
   document.querySelectorAll("details").forEach((it) => (it.open = false));
 };
 
-const toggleNonDialogue = document.getElementById("toggle")!;
-toggleNonDialogue.onclick = () => {
+const dialogueToggle = document.getElementById("dialogue-toggle")!;
+const dialogueCheck = document.getElementById("dialogue-check")!;
+
+function updateDialogueOnly() {
   const newParams = new URLSearchParams(urlParams);
   if (skip) newParams.delete("skip");
   else newParams.append("skip", "");
   window.location.search = newParams.toString();
+}
+dialogueToggle.onclick = updateDialogueOnly;
+dialogueCheck.textContent = makeCheckbox(urlParams.has("skip"));
+
+const OPTION_SHOW_INLINE = "show-inline";
+const inlineToggle = document.getElementById("inline-toggle")!;
+const inlineCheck = document.getElementById("inline-check")!;
+let showInline = getBoolOption(OPTION_SHOW_INLINE);
+
+function updateHideInline(): void {
+  setBoolOption(OPTION_SHOW_INLINE, showInline);
+  document.querySelectorAll(".inline").forEach((e) => {
+    (e as HTMLElement).style = showInline ? "" : "display: none";
+  });
+  inlineCheck.textContent = makeCheckbox(showInline);
+}
+
+inlineToggle.onclick = () => {
+  showInline = !showInline;
+  updateHideInline();
 };
+updateHideInline();
 
 const miscDefs = await fetch(`data/${game}/misc.json`).then((res) =>
   res.json(),
