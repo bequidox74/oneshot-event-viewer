@@ -13,7 +13,7 @@ import { createCollapsibleHeading, createSpanNode, lookupNode } from "./utils";
 
 export type Context = {
   misc: MiscDefinitions;
-  skip: boolean;
+  dialogueOnly: boolean;
 };
 
 const DIALOGUE_ONLY_CODES = [101, 102, 106, 111, 355, 411];
@@ -227,7 +227,7 @@ function makeEventCommands(commands: EventCommand[], context: Context): Node {
   root.classList.add("commands");
 
   function shouldSkip(code: number): boolean {
-    return context.skip && !DIALOGUE_ONLY_CODES.includes(code);
+    return context.dialogueOnly && !DIALOGUE_ONLY_CODES.includes(code);
   }
 
   const stack: Node[] = [root];

@@ -121,3 +121,8 @@ export function getBoolOption(key: string, def: boolean = false): boolean {
 export function setBoolOption(key: string, value: boolean): void {
   sessionStorage.setItem(key, value.toString());
 }
+
+export function setCheckboxOn(checkbox: HTMLElement, on: boolean): void {
+  if (on) checkbox.classList.add("on");
+  else checkbox.classList.remove("on");
+}
