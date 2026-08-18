@@ -90,8 +90,14 @@ export function lookupNode(
   }
 
   const title = `${label} ${id}`;
-  let text = context.misc[property][id - 1];
-  if (!text) text = title;
+  
+  let text: string;
+  if (property == "actors" && id <= 0) {
+    text = (id == 0) ? "This Event" : "Player";
+  } else {
+    text = context.misc[property][id - 1];
+    if (!text) text = title;
+  }
 
   const out = createSpanNode(text, cls);
   out.title = title;

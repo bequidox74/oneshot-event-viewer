@@ -356,7 +356,7 @@ function parseEscapes(raw: string, context: Context): Node[] {
         }
         case "l":
         case "r": {
-          // these are to complex to handle here. leaving them out for now.
+          // these are too complex to handle here. leaving them out for now.
           // align = (c == "l" ? "left" : "right");
           result.push(document.createTextNode("\\"));
           end -= 1;
