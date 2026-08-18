@@ -143,7 +143,7 @@ export function makeCommand(
     case 202:
       return makeSetEventLocation(command, context);
     case 203:
-      return makeScrollMap(command);
+      return makeScrollMap(command, context);
     case 204:
       return makeChangeMapSettings(command);
     case 207:
@@ -526,13 +526,8 @@ function makeCondition(command: EventCommand, context: Context): Node[] {
     }
     case 6: {
       result.push(lookupNode(command.params[1], "actors", context));
-
       result.push(document.createTextNode("'s direction is "));
-
-      const valueSpan = document.createElement("span");
-      valueSpan.classList.add("value");
-      valueSpan.textContent = command.params[2] as string;
-      result.push(valueSpan);
+      result.push(lookupNode(command.params[2], "dir", context));
       break;
     }
     case 8: {
@@ -888,10 +883,10 @@ function makeControlSelfSwitch(command: EventCommand): Node[] {
   ];
 }
 
-function makeScrollMap(command: EventCommand): Node[] {
+function makeScrollMap(command: EventCommand, context: Context): Node[] {
   return [
     document.createTextNode("Scroll Map: direction "),
-    createSpanNode(command.params[0], "value"),
+    lookupNode(command.params[0], "dir", context),
     document.createTextNode(", distance "),
     createSpanNode(command.params[1], "value"),
     document.createTextNode(", speed "),
@@ -1095,20 +1090,26 @@ function makeChangeItems(command: EventCommand, context: Context): Node[] {
 }
 
 function makeTransferPlayer(command: EventCommand, context: Context): Node[] {
+  const result: Node[] = [];
   const type = command.params[0] as number;
-  return [
-    document.createTextNode("Transfer Player to map "),
-    varValueNode(type, command.params[1], context),
-    document.createTextNode(" to ("),
-    varValueNode(type, command.params[2], context),
-    document.createTextNode(","),
-    varValueNode(type, command.params[3], context),
-    document.createTextNode("), direction "),
-    varValueNode(type, command.params[4], context),
-    document.createTextNode(" "),
+
+  const dirLabel = type == 0 ? "), facing " : "), direction = ";
+  const dirLookupType = type == 0 ? "dir" : "vars";
+
+  result.push(document.createTextNode("Transfer Player to map "));
+  result.push(varValueNode(type, command.params[1], context));
+  result.push(document.createTextNode(", position ("));
+  result.push(varValueNode(type, command.params[2], context));
+  result.push(document.createTextNode(","));
+  result.push(varValueNode(type, command.params[3], context));
+  result.push(document.createTextNode(dirLabel));
+  result.push(lookupNode(command.params[4], dirLookupType, context));
+  result.push(document.createTextNode(", "));
+  result.push(
     document.createTextNode(command.params[5] == 0 ? "with" : "without"),
-    document.createTextNode(" fade"),
-  ];
+  );
+  result.push(document.createTextNode(" fade"));
+  return result;
 }
 
 function makeSetEventLocation(command: EventCommand, context: Context): Node[] {

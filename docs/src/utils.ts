@@ -65,12 +65,12 @@ export function elemNode(
 
 export function lookupNode(
   id: number,
-  property: "items" | "vars" | "switches" | "actors",
+  type: "items" | "vars" | "switches" | "actors" | "dir",
   context: Context,
 ): Node {
   let cls;
   let label;
-  switch (property) {
+  switch (type) {
     case "items":
       cls = "item";
       label = "Item";
@@ -87,13 +87,32 @@ export function lookupNode(
       cls = "character";
       label = "Character";
       break;
+    case "dir":
+      cls = "value";
+      label = "Direction";
+      break;
   }
 
-  let text: string;
-  if (property == "actors" && id <= 0) {
+  let text: string = "";
+  if (type == "actors" && id <= 0) {
     text = id == 0 ? "This Event" : "Player";
+  } else if (type == "dir") {
+    switch (id) {
+      case 2:
+        text = "down";
+        break;
+      case 4:
+        text = "left";
+        break;
+      case 6:
+        text = "right";
+        break;
+      case 8:
+        text = "up";
+        break;
+    }
   } else {
-    text = context.misc[property][id - 1];
+    text = context.misc[type][id - 1];
     if (!text) text = `${label} ${id}`;
   }
 
