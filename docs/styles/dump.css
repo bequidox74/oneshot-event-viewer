@@ -214,8 +214,6 @@ ul.choices {
 }
 .command:not(:has(> .dialogue-box)) {
   padding: 0.4em;
-  padding-right: 0;
-  padding-bottom: 0;
   outline: 2px solid #532b89;
   border-right: none;
 }
@@ -247,13 +245,22 @@ div.code {
 
 .ed-speak,
 .desktop {
+  text-align: center;
   border: 2px solid var(--color-wme-purple);
   margin-right: 0.2em;
+  padding: 0.5em;
 }
-
 .ed-speak {
   font-size: 1.4em;
-  padding: 0.5em;
+}
+.desktop {
+  margin: auto;
+  font-size: 1.2em;
+  background-color: #9d99a2;
+  color: #222;
+  font-weight: bold;
+  width: 50%;
+  border: none;
 }
 
 .ed-box[data-type="err"] {
@@ -264,8 +271,11 @@ div.code {
   --window-bar-height: 24px;
   display: block;
   margin: 0.4em;
+  margin-left: auto;
+  margin-right: auto;
   position: relative;
   border: 2px solid var(--color-edbox);
+  width: fit-content;
 }
 .ed-box-bar {
   background-color: var(--color-edbox);
