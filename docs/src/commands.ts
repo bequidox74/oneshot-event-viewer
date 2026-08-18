@@ -26,6 +26,32 @@ function varValueNode(type: number, operand: number, context: Context): Node {
     : lookupNode(operand, "vars", context);
 }
 
+type Tone = {
+  red: number,
+  green: number,
+  blue: number,
+  gray: number,
+}
+
+function makeTone(tone: Tone): Node[] {
+  const red = createSpanNode(`R:${tone.red}`, "color1");
+  const green = createSpanNode(`G:${tone.red}`, "color2");
+  const blue = createSpanNode(`B:${tone.red}`, "color4");
+  const gray = createSpanNode(`g:${tone.red}`, "color7");
+
+  // TODO: tooltips
+
+  return [
+    red,
+    document.createTextNode(", "),
+    green,
+    document.createTextNode(", "),
+    blue,
+    document.createTextNode(", "),
+    gray,
+  ];
+}
+
 export function makeCommand(
   command: EventCommand,
   context: Context,
@@ -134,14 +160,16 @@ export function makeCommand(
         createSpanNode(params[0] as string, "value"),
         document.createTextNode('"'),
       ];
-    case 223: // Change Screen Color Tone
+    case 223: { // Change Screen Color Tone
+      const tone = params[0].Tone;
       return [
         document.createTextNode("Change Screen Color Tone to "),
-        createSpanNode(JSON.stringify(params[0]), "value"),
+        ...makeTone(tone),
         document.createTextNode(" over "),
         createSpanNode(params[1] as string, "value"),
         document.createTextNode(" frames"),
       ];
+    }
     case 224: // Screen Flash
       return [
         document.createTextNode("Start Screen Flash to color "),
@@ -169,7 +197,7 @@ export function makeCommand(
         document.createTextNode("Change Picture "),
         createSpanNode(params[0] as string, "value"),
         document.createTextNode("'s tone to "),
-        createSpanNode(params[1] as string, "value"),
+        ...makeTone(params[1].Tone),
         document.createTextNode(" over "),
         createSpanNode(params[2] as string, "value"),
         document.createTextNode(" frames"),
