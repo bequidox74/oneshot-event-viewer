@@ -30,7 +30,8 @@ type Tone = {
   red: number;
   green: number;
   blue: number;
-  gray: number;
+  gray?: number;
+  alpha?: number;
 };
 
 function makeTone(tone: Tone): Node[] {
@@ -41,10 +42,14 @@ function makeTone(tone: Tone): Node[] {
   let gray: HTMLSpanElement | null = null;
   if (tone.gray) gray = createSpanNode(`g:${tone.gray}`, "color7");
 
+  let alpha: HTMLSpanElement | null = null;
+  if (tone.alpha) alpha = createSpanNode(`g:${tone.alpha}`, "color7");
+
   addTooltip(red, `Red = ${tone.red}`);
   addTooltip(green, `Green = ${tone.green}`);
   addTooltip(blue, `Blue = ${tone.blue}`);
   if (gray) addTooltip(gray, `Gray = ${tone.gray}`);
+  if (alpha) addTooltip(alpha, `Alpha = ${tone.alpha}`);
 
   const result: Node[] = [
     red,
@@ -56,6 +61,10 @@ function makeTone(tone: Tone): Node[] {
   if (gray) {
     result.push(document.createTextNode(", "));
     result.push(gray);
+  }
+  if (alpha) {
+    result.push(document.createTextNode(", "));
+    result.push(alpha);
   }
   return result;
 }
@@ -170,7 +179,7 @@ export function makeCommand(
       ];
     case 223: {
       // Change Screen Color Tone
-      const tone = params[0].Tone;
+      const tone = params[0];
       return [
         document.createTextNode("Change Screen Color Tone to "),
         ...makeTone(tone),
@@ -182,7 +191,7 @@ export function makeCommand(
     case 224: // Screen Flash
       return [
         document.createTextNode("Start Screen Flash to color "),
-        ...makeTone(params[0].Color),
+        ...makeTone(params[0]),
         document.createTextNode(" over "),
         createSpanNode(params[1] as string, "value"),
         document.createTextNode(" frames"),
@@ -206,7 +215,7 @@ export function makeCommand(
         document.createTextNode("Change Picture "),
         createSpanNode(params[0] as string, "value"),
         document.createTextNode("'s tone to "),
-        ...makeTone(params[1].Tone),
+        ...makeTone(params[1]),
         document.createTextNode(" over "),
         createSpanNode(params[2] as string, "value"),
         document.createTextNode(" frames"),
@@ -229,6 +238,10 @@ export function makeCommand(
       return makePlayMe(command);
     case 250:
       return makePlaySe(command);
+    case 251:
+      return [
+        document.createTextNode("Stop Sound Effect")
+      ];
     case 322:
       return [
         document.createTextNode("Change Actor Graphic of "),
@@ -392,7 +405,8 @@ function parseEscapes(raw: string, context: Context): Node[] {
           break;
         }
         case "l":
-        case "r": {
+        case "r":
+        case "h": {
           // these are too complex to handle here. leaving them out for now.
           // align = (c == "l" ? "left" : "right");
           result.push(document.createTextNode("\\"));
@@ -700,7 +714,7 @@ function makeEdText(code: string, context: Context): Node | null {
 }
 
 function makePlayBgm(command: EventCommand): Node[] {
-  const audioFile = command.params[0].AudioFile as AudioFile;
+  const audioFile = command.params[0] as AudioFile;
   return [
     document.createTextNode('Play BG music "'),
     createSpanNode(audioFile.name, "value"),
@@ -720,7 +734,7 @@ function makeFadeOutBgm(command: EventCommand): Node[] {
 }
 
 function makePlayBgs(command: EventCommand): Node[] {
-  const audioFile = command.params[0].AudioFile as AudioFile;
+  const audioFile = command.params[0] as AudioFile;
   return [
     document.createTextNode("Play background sound "),
     createSpanNode(audioFile.name, "value"),
@@ -733,16 +747,16 @@ function makePlayBgs(command: EventCommand): Node[] {
 
 function makeFadeOutBgs(command: EventCommand): Node[] {
   return [
-    document.createTextNode("Fade Out Bacgkround Sound over "),
+    document.createTextNode("Fade Out Background Sound over "),
     createSpanNode(command.params[0], "value"),
     document.createTextNode(" seconds"),
   ];
 }
 
 function makePlaySe(command: EventCommand): Node[] {
-  const audioFile = command.params[0].AudioFile as AudioFile;
+  const audioFile = command.params[0] as AudioFile;
   return [
-    document.createTextNode('Play sound effect "'),
+    document.createTextNode('Play Sound Effect "'),
     createSpanNode(audioFile.name, "value"),
     document.createTextNode('", volume '),
     createSpanNode(audioFile.volume?.toString() ?? 1, "value"),
@@ -752,9 +766,9 @@ function makePlaySe(command: EventCommand): Node[] {
 }
 
 function makePlayMe(command: EventCommand): Node[] {
-  const audioFile = command.params[0].AudioFile as AudioFile;
+  const audioFile = command.params[0] as AudioFile;
   return [
-    document.createTextNode('Play music effect "'),
+    document.createTextNode('Play Music Effect "'),
     createSpanNode(audioFile.name, "value"),
     document.createTextNode('", volume '),
     createSpanNode(audioFile.volume?.toString() ?? 1, "value"),

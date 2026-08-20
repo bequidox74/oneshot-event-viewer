@@ -56,10 +56,29 @@ def save(obj, file, pretty: bool) -> None:
     file.write(json.dumps(obj, indent=indent, separators=separators))
 
 
-def params_to_list(params: list[dict]) -> list:
+def params_to_list(params: list[dict | str]) -> list:
     result = []
-    for i in range(len(params)):
-        result.append(getparam(params, i))
+    for p in params:
+        if isinstance(p, str):  # WME format
+            try:
+                result.append(int(p))
+            except ValueError:
+                result.append(p)
+        else:  # XP format (jank)
+            type_, value = list(p.items())[0]
+            match type_:
+                case "Integer":
+                    result.append(int(value))
+                case "String":
+                    result.append(value)
+                case "Color" | "Tone":
+                    result.append(value)
+                case "AudioFile":
+                    result.append(value)
+                case "MoveRoute" | "MoveCommand":
+                    result.append(value)
+                case "Array":
+                    result.append(params_to_list(value))
     return result
 
 
@@ -303,8 +322,8 @@ def do_xp(args: Namespace) -> None:
     del items, system, actors
     # endregion
 
-
     # region process files
+    logger.info("processing maps")
     for p in in_path.iterdir():
         if p.suffix != ".json":
             logger.debug(f"non-JSON file, skipping: {p}")
@@ -415,6 +434,12 @@ def parse_commands_xp(commands: list[dict]) -> list[dict]:
                 params = params_to_list(cmd["parameters"])
                 if params:
                     out["params"] = params
+
+            if cmd.get("audio_file") is not None:
+                out["params"] = [cmd["audio_file"]]
+            elif cmd.get("move_route") is not None:
+                out["params"][1] = cmd["move_route"]
+
             result.append(out)
 
         i += 1

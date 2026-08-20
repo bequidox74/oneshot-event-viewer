@@ -13,9 +13,9 @@ const map = urlParams.get("map") ?? "common";
 const root = document.getElementById("root")!;
 const status = document.getElementById("status")!;
 
-const miscDefs = await fetch(`data/${game}/misc.json`).then((res) =>
-  res.json(),
-);
+const miscDefs = await fetch(
+  `data/${game == "wme" ? "os16" : game}/misc.json`,
+).then((res) => res.json());
 
 const dialogueOnlyCheckbox = document.getElementById("dialogue-check")!;
 const showInlineCheckbox = document.getElementById("inline-check")!;
