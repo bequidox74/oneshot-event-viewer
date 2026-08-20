@@ -52,10 +52,7 @@ def do_xp(args: Namespace) -> None:
     for map_ in map_infos:
         map_names[int(map_)] = map_infos[map_]["name"]
 
-    if not args.dry_run:
-        with open(out_path / "maps.json", "w") as file:
-            logger.debug("saving map names")
-            save(map_names, file, args.pretty)
+    save(map_names, out_path / "maps.json", args.pretty, args.dry_run)
     # endregion
 
     # region read misc names
@@ -94,9 +91,7 @@ def do_xp(args: Namespace) -> None:
         "vars": variables,
         "actors": characters,
     }
-    if not args.dry_run:
-        with open(out_path / "misc.json", "w") as file:
-            save(out, file, args.pretty)
+    save(out, out_path / "misc.json", args.pretty, args.dry_run)
 
     del items, system, actors
     # endregion
@@ -114,10 +109,7 @@ def do_xp(args: Namespace) -> None:
                 root = json.load(file)
 
             events = process_common_events_xp(root)
-
-            if not args.dry_run:
-                with open(out_path / "common.json", "w") as file:
-                    save(events, file, args.pretty)
+            save(events, out_path / "common.json", args.pretty, args.dry_run)
 
         elif p.stem != "MapInfos" and p.stem.startswith("Map"):
             map_id = int(p.stem[-3:])
@@ -129,10 +121,7 @@ def do_xp(args: Namespace) -> None:
 
             events = process_map_xp(root)
             map_ = {"name": map_name, "id": map_id, "events": events}
-
-            if not args.dry_run:
-                with open(out_path / f"map{map_id}.json", "w") as file:
-                    save(map_, file, args.pretty)
+            save(map_, out_path / f"map{map_id}.json", args.pretty, args.dry_run)
 
         elif p.stem == "xScripts":
             with open(p) as file:
@@ -283,11 +272,7 @@ def do_wme(args: Namespace) -> None:
             map_names[id_] = name
             logger.debug(f"loaded map info for {name} ({id_})")
         del obj
-
-    if not args.dry_run:
-        with open(out_dir / "maps.json", "w") as file:
-            logger.debug("saving map names")
-            save(map_names, file, args.pretty)
+    save(map_names, out_dir / "maps.json", args.pretty, args.dry_run)
     # endregion
 
     # region load common events
@@ -295,10 +280,7 @@ def do_wme(args: Namespace) -> None:
     with open(in_dir / "oneshot_common_events.json") as file:
         obj: dict = json.load(file)
     events = process_common_events_xp(obj["common_events"])
-    if not args.dry_run:
-        with open(out_dir / "common.json", "w") as file:
-            save(events, file, args.pretty)
-            logger.debug("saved common events")
+    save(events, out_dir / "common.json", args.pretty, args.dry_run)
     # endregion
 
     # region process maps
@@ -314,11 +296,8 @@ def do_wme(args: Namespace) -> None:
         with open(p) as file:
             map_ = json.load(file)
         events = process_map_xp(map_)
-        if not args.dry_run:
-            with open(out_dir / f"map{map_id}.json", "w") as file:
-                logger.debug(f"saving map {map_name}")
-                out = {"name": map_name, "id": map_id, "events": events}
-                save(out, file, args.pretty)
+        out = {"name": map_name, "id": map_id, "events": events}
+        save(out, out_dir / f"map{map_id}.json", args.pretty, args.dry_run)
     # endregion
 
     logger.info("done processing WME")

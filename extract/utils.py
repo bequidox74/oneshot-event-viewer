@@ -43,10 +43,13 @@ def getparam(params: list[dict], i: int) -> int | str | list | dict:
         return param
 
 
-def save(obj, file, pretty: bool) -> None:
+def save(what, where, pretty: bool, dry_run: bool) -> None:
+    if dry_run:
+        return
     indent = 2 if pretty else None
     separators = (",", ": ") if pretty else (",", ":")
-    file.write(json.dumps(obj, indent=indent, separators=separators))
+    with open(where, "w") as file:
+        json.dump(what, file, indent=indent, separators=separators)
 
 
 def params_to_list(params: list[dict | str]) -> list:

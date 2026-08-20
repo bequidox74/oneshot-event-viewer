@@ -22,10 +22,7 @@ def do_2k3(args: Namespace) -> None:
         map_names[int(geta(map_info, "id"))] = getv(map_info, "name")
     del map_names[0]  # exclude ID 0 because it's not really a map
     del emt
-
-    if not args.dry_run:
-        with open(out_path / "maps.json", "w") as file:
-            save(map_names, file, args.pretty)
+    save(map_names, out_path / "maps.json", args.pretty, args.dry_run)
     # endregion
 
     # region process common events
@@ -45,10 +42,7 @@ def do_2k3(args: Namespace) -> None:
         if commands:
             out_event["list"] = commands
         out.append(out_event)
-
-    if not args.dry_run:
-        with open(out_path / "common.json", "w") as file:
-            save(out, file, args.pretty)
+    save(out, out_path / "common.json", args.pretty, args.dry_run)
     del edb
     # endregion
 
@@ -77,11 +71,7 @@ def do_2k3(args: Namespace) -> None:
             out_event["pages"] = out_pages
             out_events.append(out_event)
         out = {"name": map_name, "id": map_id, "events": out_events}
-
-        if not args.dry_run:
-            with open(out_path / f"map{map_id}.json", "w") as file:
-                logger.debug(f"writing map {map_name} ({map_id})")
-                save(out, file, args.pretty)
+        save(out, out_path / f"map{map_id}.json", args.pretty, args.dry_run)
     # endregion
 
 
