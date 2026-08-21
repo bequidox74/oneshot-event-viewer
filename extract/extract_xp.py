@@ -6,11 +6,11 @@ from pathlib import Path
 from argparse import Namespace
 from utils import *
 
-
 logger = logging.getLogger(__name__)
 
+
 def do_xp(args: Namespace) -> None:
-    in_path = Path(args.directory)
+    in_path = Path(args.input)
     out_path = Path(args.output)
     os.makedirs(out_path, exist_ok=True)
 
@@ -95,6 +95,9 @@ def do_xp(args: Namespace) -> None:
             save(map_, out_path / f"map{map_id}.json", args.pretty, args.dry_run)
 
         elif p.stem == "xScripts":
+            if not args.scripts:
+                continue
+
             with open(p) as file:
                 scripts = json.load(file)
 
@@ -226,7 +229,7 @@ def process_map_xp(map_: dict) -> list[dict]:
 
 def do_wme(args: Namespace) -> None:
     # first, check if we've been passed the path to the root or gamedata.
-    in_dir = Path(args.directory)
+    in_dir = Path(args.input)
     if (gd := in_dir / "gamedata").exists() and gd.is_dir():
         in_dir = gd
     out_dir = Path(args.output)

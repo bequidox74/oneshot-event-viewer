@@ -4,13 +4,13 @@ import xml.etree.ElementTree as ET
 
 from argparse import Namespace
 from pathlib import Path
-from extract.utils import *
+from utils import *
 
 logger = logging.getLogger(__name__)
 
 
 def do_2k3(args: Namespace) -> None:
-    in_path = Path(args.directory)
+    in_path = Path(args.input)
     out_path = Path(args.output)
     os.makedirs(out_path, exist_ok=True)
 

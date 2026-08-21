@@ -4,5 +4,6 @@
 *.rb
 *.7z
 *.xml
+*.pyc
 
 !docs/
