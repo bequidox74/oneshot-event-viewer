@@ -1,7 +1,7 @@
 import logging
 import os
-import xml.etree.ElementTree as ET
 
+from xml.etree import ElementTree as ET
 from argparse import Namespace
 from pathlib import Path
 from utils import *
@@ -14,115 +14,184 @@ def do_2k3(args: Namespace) -> None:
     out_path = Path(args.output)
     os.makedirs(out_path, exist_ok=True)
 
-    # region read map names
-    logger.info("loading map names")
+    edb = ET.parse(in_path / "RPG_RT.edb").getroot()[0]
+
+    map_names = get_map_names(in_path)
+    save(map_names, out_path / "maps.json", args.pretty, args.dry_run)
+
+    misc = get_misc(edb)
+    save(misc, out_path / "misc.json", args.pretty, args.dry_run)
+
+    common_events = get_common_events(edb)
+    save(common_events, out_path / "common.json", args.pretty, args.dry_run)
+
+    logger.info("processing maps")
+    for path in in_path.iterdir():
+        if path.suffix != ".emu":
+            continue  # all maps are .emu
+
+        map_ = get_map(path)
+        id_: int = map_["id"]
+        map_["name"] = map_names[id_]
+        save(map_, out_path / f"map{id_}.json", args.pretty, args.dry_run)
+
+
+def get_map_names(in_path: Path) -> dict[int, str]:
+    logger.info("processing map names")
     map_names: dict[int, str] = {}
     emt = ET.parse(in_path / "RPG_RT.emt")
     for map_info in emt.getroot()[0][0]:
-        map_names[int(geta(map_info, "id"))] = getv(map_info, "name")
+        map_names[int(getatt(map_info, "id"))] = getvalue(map_info, "name")
     del map_names[0]  # exclude ID 0 because it's not really a map
-    del emt
-    save(map_names, out_path / "maps.json", args.pretty, args.dry_run)
-    # endregion
+    return map_names
 
-    # region process common events
+
+def get_common_events(edb: ET.Element) -> list[dict]:
     logger.info("processing common events")
-    edb = ET.parse(in_path / "RPG_RT.edb")
-    db = edb.getroot()[0]
     out = []
-    for event in gett(db, "commonevents"):
-        out_event = {}
-        out_event["id"] = int(geta(event, "id"))
-        out_event["name"] = getv(event, "name")
-        out_event["trigger"] = getv(event, "trigger")
-        out_event["switchFlag"] = getflag(event, "switch_flag")
-        out_event["switchId"] = int(getv(event, "switch_id"))
+    for ein in gettag(edb, "commonevents"):
+        eout = {}
+        eout["id"] = int(getatt(ein, "id"))
+        eout["name"] = getvalue(ein, "name")
 
-        commands = parse_commands_old(gett(event, "event_commands"))
+        eout["trigger"] = int(getvalue(ein, "trigger"))
+        if getflag(ein, "switch_flag"):
+            eout["switchId"] = int(getvalue(ein, "switch_id"))
+
+        commands = parse_commands_old(gettag(ein, "event_commands"))
         if commands:
-            out_event["list"] = commands
-        out.append(out_event)
-    save(out, out_path / "common.json", args.pretty, args.dry_run)
-    del edb
-    # endregion
-
-    # region process maps
-    logger.info("processing maps")
-    for p in in_path.iterdir():
-        if not p.stem.startswith("Map"):
-            continue
-
-        map_id = int(p.stem[3:])
-        map_name = map_names[map_id]
-        logger.debug(f"processing map {map_name} (map_id)")
-        root = ET.parse(p).getroot()[0]
-
-        out_events = []
-        for event in gett(root, "events"):
-            out_event = {}
-            out_event["id"] = int(geta(event, "id"))
-            out_event["x"] = int(getv(event, "x"))
-            out_event["y"] = int(getv(event, "y"))
-
-            out_pages = []
-            for page in gett(event, "pages"):
-                out_page = parse_page_2k3(page)
-                out_pages.append(out_page)
-            out_event["pages"] = out_pages
-            out_events.append(out_event)
-        out = {"name": map_name, "id": map_id, "events": out_events}
-        save(out, out_path / f"map{map_id}.json", args.pretty, args.dry_run)
-    # endregion
+            eout["commands"] = commands
+        out.append(eout)
+    return out
 
 
-def parse_page_2k3(page: ET.Element) -> dict:
-    out_page = {}
+def get_misc(edb: ET.Element) -> dict[str, list[str]]:
+    def load_group(group: str) -> list[str]:
+        logger.debug(f"processing {group}")
+        out: list[str] = []
+        for t in gettag(edb, group):
+            out.append(getvalue(t, "name"))
+        return out
 
-    conditions = {}
-    epc = gett(page, "condition")[0]
-    flags = gett(epc, "flags")[0]
+
+    switches = load_group("switches")
+    variables = load_group("variables")
+    items = load_group("items")
+    actors = load_group("actors")
+
+    return {
+        "switches": switches,
+        "variables": variables,
+        "items": items,
+        "actors": actors,
+    }
+
+
+def get_map(in_path: Path) -> dict:
+    map_id = int(in_path.stem[3:])
+    logger.debug(f"processing map {map_id}")
+
+    root = ET.parse(in_path).getroot()[0]
+
+    map_events = []
+    for ein in gettag(root, "events"):
+        eout = {}
+        eout["id"] = int(getatt(ein, "id"))
+        eout["x"] = int(getvalue(ein, "x"))
+        eout["y"] = int(getvalue(ein, "y"))
+
+        pout = []
+        for pin in gettag(ein, "pages"):
+            out_page = parse_page_2k3(pin)
+            pout.append(out_page)
+        eout["pages"] = pout
+        map_events.append(eout)
+    out = {"id": map_id, "name": None, "events": map_events}  # None to preserve order of keys in a dict
+    return out
+
+
+def parse_page_2k3(pin: ET.Element) -> dict:
+    pout = {}
+    cout = {}
+    cin = gettag(pin, "condition")[0]
+    flags = gettag(cin, "flags")[0]
 
     def add_condition(flag: str, value: str, key: str | None = None):
         if key is None:
             key = flag
         if getflag(flags, flag):
-            conditions[key] = int(getv(epc, value))
+            cout[key] = int(getvalue(cin, value))
 
     add_condition("switch_a", "switch_a_id", "switch1")
     add_condition("switch_b", "switch_b_id", "switch2")
-    add_condition("variable", "variable_value", "var")
+
+    if getflag(flags, "variable"):
+        cout["var"] = int(getvalue(cin, "variable_id"))
+        cout["value"] = int(getvalue(cin, "variable_value"))
+        cout["oper"] = int(getvalue(cin, "compare_operator"))  # see https://github.com/EasyRPG/Player/blob/212f3466c9f276ff7cade5a5ead78d3a151343ac/src/game_interpreter_shared.h#L184
+
+    # these are only used in 2k3
     add_condition("item", "item_id")
     add_condition("actor", "actor_id")
     add_condition("timer", "timer_sec")
     add_condition("timer2", "timer2_sec")
-    if conditions:
-        out_page["condition"] = conditions
 
-    commands = parse_commands_old(gett(page, "event_commands"))
+    if cout:
+        pout["condition"] = cout
+    commands = parse_commands_old(gettag(pin, "event_commands"))
     if commands:
-        out_page["list"] = commands
-    return out_page
+        pout["list"] = commands
+    return pout
 
 
 def parse_commands_old(commands: ET.Element) -> list[dict]:
-    out = []
-    for ec in commands:
-        cmd = parse_command_old(ec)
-        if cmd:
-            out.append(cmd)
+    out: list[dict] = []
+    for cmd in commands:
+        cout = {}
+        code = int(getvalue(cmd, "code"))
+        params: list = [int(x) for x in getvalue(cmd, "parameters").split()]
+        string = getvalue(cmd, "string")
+
+        cout["code"] = code
+        cout["params"] = params
+        if string:
+            cout["params"].append(string)
+        indent = int(getvalue(cmd, "indent"))
+        if indent != 0:
+            cout["indent"] = indent
+
+        match code:
+            case 10110:  # ShowMessage -> 101 Show Text
+                cout["params"] = [string]
+            case 20110:  # ShowMessage_2 -> 401 More Text
+                cout = None
+                out[-1]["params"][0] += string
+            case _:
+                pass
+
+        if cout is not None:
+            out.append(cout)
+
     return out
 
 
-def parse_command_old(command: ET.Element) -> dict:
-    out_cmd = {}
-    out_cmd["code"] = int(getv(command, "code"))
+def gettag(elem: ET.Element, tag: str) -> ET.Element:
+    result = elem.find(tag)
+    assert result is not None
+    return result
 
-    indent = int(getv(command, "indent"))
-    if indent != 0:
-        out_cmd["indent"] = indent
 
-    params = [int(x) for x in getv(command, "parameters").split()]
-    if params:
-        out_cmd["params"] = params
+def getvalue(elem: ET.Element, tag: str) -> str:
+    e_tag = gettag(elem, tag)
+    text = e_tag.text
+    return text if text is not None else ""
 
-    return out_cmd
+
+def getatt(elem: ET.Element, attribute: str) -> str:
+    att = elem.get(attribute)
+    assert att is not None
+    return att
+
+
+def getflag(elem: ET.Element, tag: str) -> bool:
+    return False if getvalue(elem, tag) == "F" else True

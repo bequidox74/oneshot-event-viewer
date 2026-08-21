@@ -76,25 +76,3 @@ def params_to_list(params: list[dict | str]) -> list:
                 case "Array":
                     result.append(params_to_list(value))
     return result
-
-
-def gett(elem: ET.Element, tag: str) -> ET.Element:
-    result = elem.find(tag)
-    assert result is not None
-    return result
-
-
-def getv(elem: ET.Element, tag: str) -> str:
-    e_tag = gett(elem, tag)
-    text = e_tag.text
-    return text if text is not None else ""
-
-
-def geta(elem: ET.Element, attribute: str) -> str:
-    att = elem.get(attribute)
-    assert att is not None
-    return att
-
-
-def getflag(elem: ET.Element, tag: str) -> bool:
-    return False if getv(elem, tag) == "F" else True

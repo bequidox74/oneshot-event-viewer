@@ -1,0 +1,2 @@
+- interpreter: https://github.com/EasyRPG/Player/blob/master/src/game_interpreter.cpp
+- `AreConditionsMet` (page): https://github.com/EasyRPG/Player/blob/212f3466c9f276ff7cade5a5ead78d3a151343ac/src/game_event.cpp#L243
