@@ -2,6 +2,7 @@ import {
   CODE_TO_VARIABLE_OP,
   createVarValueNode,
   createTone,
+  CODE_TO_COMPARISON,
 } from "./commands";
 import type { Context } from "./tree";
 import type { EventCommand } from "./types";
@@ -28,6 +29,11 @@ const SYSTEM_SFX = [
   "enemy kill",
   "use item",
 ];
+
+const CHARACTER_MAP: Record<number, string> = {
+  10001: "player",
+  10005: "this event",
+};
 
 //
 // ALL HOPE ABANDON YE WHO ENTER HERE
@@ -585,6 +591,373 @@ export function makeCommand2k3(
         document.createTextNode(" seconds, wait = "),
         createOnOff(params[3] != 0),
       ];
+    }
+
+    case 11060: {
+      // break;
+      // PanScreen
+      const cmd = params[0];
+      const direction = params[1];
+      const distance = params[2];
+      const speed = params[3];
+      const waitingPanScreen = params[4] != 0;
+      switch (cmd) {
+        case 0:
+          // lock
+          return [document.createTextNode("Lock Pan")];
+        case 1:
+          // unlock
+          return [document.createTextNode("Unlock Pan")];
+        case 2:
+          // pan
+          return [
+            document.createTextNode("Pan Screen "),
+            lookupNode(direction, "dir", context),
+            document.createTextNode(" with distance "),
+            createValueNode(distance),
+            document.createTextNode(", speed "),
+            createValueNode(speed),
+            document.createTextNode(", waiting pan screen = "),
+            createOnOff(waitingPanScreen),
+          ];
+        case 3:
+          // reset
+          return [
+            document.createTextNode("Reset Screen Pan speed to "),
+            createValueNode(speed),
+          ];
+      }
+      return [];
+    }
+
+    case 11110: {
+      // ShowPicture
+      const details = document.createElement("details");
+      const summary = document.createElement("summary");
+      summary.textContent = "More details";
+      details.appendChild(summary);
+
+      const list = document.createElement("ul");
+      const items = [
+        [document.createTextNode("Fixed to map: "), createOnOff(params[4] > 0)],
+        [
+          document.createTextNode("Magnify width: "),
+          createValueNode(params[5]),
+        ],
+        [
+          document.createTextNode("Magnify height: "),
+          createValueNode(params[5]),
+        ],
+        [document.createTextNode("Top transparency: "), createOnOff(params[6])],
+        [
+          document.createTextNode("Use transparent color: "),
+          createOnOff(params[7] > 0),
+        ],
+        [createSpanNode(`Red: ${params[8]}`, "color1")],
+        [createSpanNode(`Green: ${params[9]}`, "color2")],
+        [createSpanNode(`Blue: ${params[10]}`, "color4")],
+        [createSpanNode(`Saturation: ${params[11]}`, "color7")],
+        [document.createTextNode("Effect mode: "), createValueNode(params[12])],
+        [
+          document.createTextNode("Effect power: "),
+          createValueNode(params[13]),
+        ],
+        [
+          document.createTextNode("Bottom transparency:"),
+          createValueNode(params[14]),
+        ],
+      ];
+
+      for (const item of items) {
+        const li = document.createElement("li");
+        li.append(...item);
+        list.appendChild(li);
+      }
+      details.appendChild(list);
+
+      return [
+        document.createTextNode("Show Picture "),
+        createValueNode(params[0]),
+        document.createTextNode(' "'),
+        createValueNode(params.at(-1)),
+        document.createTextNode('" at ('),
+        createVarValueNode(params[1], params[2], context),
+        document.createTextNode(","),
+        createVarValueNode(params[1], params[3], context),
+        document.createTextNode(")"),
+        details,
+      ];
+    }
+
+    case 11120: {
+      // MovePicture
+      const details = document.createElement("details");
+      const summary = document.createElement("summary");
+      summary.textContent = "More details";
+      details.appendChild(summary);
+
+      const list = document.createElement("ul");
+      const items = [
+        [
+          document.createTextNode("Magnify width: "),
+          createValueNode(params[5]),
+        ],
+        [
+          document.createTextNode("Magnify height: "),
+          createValueNode(params[5]),
+        ],
+        [document.createTextNode("Top transparency: "), createOnOff(params[6])],
+        [createSpanNode(`Red: ${params[8]}`, "color1")],
+        [createSpanNode(`Green: ${params[9]}`, "color2")],
+        [createSpanNode(`Blue: ${params[10]}`, "color4")],
+        [createSpanNode(`Saturation: ${params[11]}`, "color7")],
+        [document.createTextNode("Effect mode: "), createValueNode(params[12])],
+        [
+          document.createTextNode("Effect power: "),
+          createValueNode(params[13]),
+        ],
+        [document.createTextNode("Duration: "), createValueNode(params[14])],
+      ];
+
+      for (const item of items) {
+        const li = document.createElement("li");
+        li.append(...item);
+        list.appendChild(li);
+      }
+      details.appendChild(list);
+
+      return [
+        document.createTextNode("Move Picture "),
+        createValueNode(params[0]),
+        document.createTextNode(" to ("),
+        createVarValueNode(params[1], params[2], context),
+        document.createTextNode(","),
+        createVarValueNode(params[1], params[3], context),
+        document.createTextNode(")"),
+        details,
+      ];
+    }
+
+    case 11130: {
+      return [
+        document.createTextNode("Erase Picture "),
+        createValueNode(params[0]),
+      ];
+    }
+
+    case 11210: {
+      // ShowBattleAnimation
+      return [
+        document.createTextNode("Show Battle Animation "),
+        createValueNode(params[0]),
+        document.createTextNode(" for Event "),
+        createValueNode(CHARACTER_MAP[params[1]] ?? params[1]),
+        document.createTextNode(", waiting battle anim = "),
+        createOnOff(params[2] > 0),
+        document.createTextNode(", global = "),
+        createOnOff(params[3] > 0),
+      ];
+    }
+
+    case 11330: {
+      // MoveEvent
+      const details = document.createElement("details");
+      const summary = document.createElement("summary");
+      summary.textContent = "Move Route";
+      details.appendChild(summary);
+
+      const list = document.createElement("ul");
+      {
+        const li = document.createElement("li");
+        li.append("Move frequency: ", createValueNode(params[1]));
+        list.appendChild(li);
+      }
+      {
+        const li = document.createElement("li");
+        li.append("Repeat: ", createOnOff(params[2]));
+        list.appendChild(li);
+      }
+      {
+        const li = document.createElement("li");
+        li.append("Skippable: ", createOnOff(params[3]));
+        list.appendChild(li);
+      }
+      {
+        const li = document.createElement("li");
+        const route = JSON.stringify(params.slice(4));
+        li.textContent = "Commands: " + route.substring(1, route.length - 1);
+        list.appendChild(li);
+      }
+      details.appendChild(list);
+
+      return [
+        document.createTextNode("Move Event "),
+        createValueNode(CHARACTER_MAP[params[0]] ?? params[0]),
+        details,
+      ];
+    }
+
+    case 11510: {
+      // PlayBGM
+      return [
+        document.createTextNode('Play BG Music "'),
+        createValueNode(params.at(-1)),
+        document.createTextNode('", fade in over '),
+        createValueNode(params[0]),
+        document.createTextNode(" ms, volume "),
+        createValueNode(params[1]),
+        document.createTextNode(", tempo "),
+        createValueNode(params[2]),
+        document.createTextNode(", balance "),
+        createValueNode(params[3]),
+      ];
+    }
+
+    case 11520: {
+      // FadeOutBGM
+      return [
+        document.createTextNode("Fade Out BG Music over "),
+        createValueNode(params[0]),
+        document.createTextNode(" ms"),
+      ];
+    }
+
+    case 11550: {
+      // PlaySound
+      return [
+        document.createTextNode('Play Sound "'),
+        createValueNode(params.at(-1)),
+        document.createTextNode('", volume '),
+        createValueNode(params[0]),
+        document.createTextNode(", tempo "),
+        createValueNode(params[1]),
+        document.createTextNode(", balance "),
+        createValueNode(params[2]),
+      ];
+    }
+
+    // i'm sorry, i'm not parsing this bullshit. if you're interested,
+    // see https://github.com/EasyRPG/Player/blob/212f3466c9f276ff7cade5a5ead78d3a151343ac/src/game_interpreter.cpp#L3282
+    case 11610: {
+      // KeyInputProc
+      const a = document.createElement("a");
+      a.textContent = "(?)";
+      a.title = "Subject yourself to the horrors of the original C++ method";
+      a.href =
+        "https://github.com/EasyRPG/Player/blob/212f3466c9f276ff7cade5a5ead78d3a151343ac/src/game_interpreter.cpp#L3282";
+      return [
+        document.createTextNode(
+          "Key Input Processing: " + JSON.stringify(params) + " ",
+        ),
+        a,
+      ];
+    }
+
+    case 11720: {
+      // ChangePBG
+      return [
+        document.createTextNode('Change Parallax BG to "'),
+        createValueNode(params.at(-1)),
+        document.createTextNode('", scroll horz = '),
+        createOnOff(params[0] != 0),
+        document.createTextNode(", vert = "),
+        createOnOff(params[1] != 0),
+        document.createTextNode(", horz auto = "),
+        createOnOff(params[2] != 0),
+        document.createTextNode(", horz speed = "),
+        createValueNode(params[3]),
+        document.createTextNode(", vert auto = "),
+        createOnOff(params[4] != 0),
+        document.createTextNode(", vert speed = "),
+        createValueNode(params[5]),
+      ];
+    }
+
+    case 11960: {
+      // ChangeMainMenuAccess
+      return [
+        document.createTextNode("Set Allow Main Menu "),
+        createOnOff(params[0] != 0),
+      ];
+    }
+
+    case 12010: {
+      // ConditionalBranch
+      // (only codes used by OS14 are implemented)
+      const result: Node[] = [document.createTextNode("If ")];
+      switch (params[0]) {
+        case 0: {
+          // switch
+          result.push(
+            lookupNode(params[1], "switches", context),
+            document.createTextNode(" is "),
+            createOnOff(params[2] == 0),
+          );
+          break;
+        }
+        case 1: {
+          // variable
+          const val1 = lookupNode(params[1], "vars", context);
+          const val2 = createVarValueNode(params[2], params[3], context);
+          const comp = ` ${CODE_TO_COMPARISON[params[4]]} `;
+          result.push(val1, document.createTextNode(comp), val2);
+          break;
+        }
+        case 4: {
+          // item
+          const hasText = params[2] == 0 ? "has " : "does not have ";
+          result.push(
+            document.createTextNode("party "),
+            document.createTextNode(hasText),
+            lookupNode(params[1], "items", context),
+          );
+          break;
+        }
+        case 5: {
+          // hero
+          const actor = lookupNode(params[1], "actors", context);
+          result.push(actor);
+          switch (params[2]) {
+            case 0:
+              // in party
+              result.push(document.createTextNode(" is in party"));
+              break;
+            case 4:
+              // has skill
+              result.push(
+                document.createTextNode(" has learned skill "),
+                lookupNode(params[3], "skills", context),
+              );
+              break;
+            case 5:
+              // has item equipped
+              result.push(
+                document.createTextNode(" has "),
+                lookupNode(params[3], "items", context),
+                document.createTextNode(" equipped"),
+              );
+              break;
+          }
+          break;
+        }
+        case 6: {
+          // orientation of char
+          result.push(
+            document.createTextNode("Character "),
+            document.createTextNode(CHARACTER_MAP[params[1]] ?? params[1]),
+            document.createTextNode(" is facing "),
+            lookupNode(params[2], "dir", context),
+          );
+          break;
+        }
+        case 8: {
+          // "key decision initiated this event"
+          result.push(document.createTextNode("triggered by decision key"));
+          break;
+        }
+      }
+      result.push(document.createTextNode(":"));
+      return result;
     }
 
     case 11340: {

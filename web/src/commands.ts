@@ -3,12 +3,12 @@ import type { Context } from "./tree";
 import type { AudioFile, EventCommand } from "./types";
 import { addTooltip, createSpanNode, lookupNode } from "./utils";
 
-const CODE_TO_COMPARISON: { [key: number]: string } = {
+export const CODE_TO_COMPARISON: { [key: number]: string } = {
   0: "==",
   1: ">=",
   2: "<=",
   3: ">",
-  4: "<=",
+  4: "<",
   5: "!=",
 };
 
