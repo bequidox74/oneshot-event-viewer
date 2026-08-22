@@ -1,4 +1,5 @@
 import { makeCommand2k3 } from "./commands-2k3";
+import { DEFAULT_PLAYER_NAME, options } from "./options";
 import type { Context } from "./tree";
 import type { AudioFile, EventCommand } from "./types";
 import { addTooltip, createSpanNode, lookupNode } from "./utils";
@@ -424,7 +425,7 @@ function parseEscapes(raw: string, context: Context): Node[] {
           break;
         }
         case "p": {
-          const name = "Player";
+          const name = options.playerName ?? DEFAULT_PLAYER_NAME;
           const span = document.createElement("span");
           span.textContent = name;
           span.classList.add("player");

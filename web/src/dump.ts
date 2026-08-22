@@ -34,6 +34,7 @@ function updateNameInput(): void {
   } else {
     nameInput.placeholder = NAME_PLACEHOLDERS[0];
   }
+  if (options.playerName) nameInput.value = options.playerName;
 }
 
 function updateCheckboxes(): void {
@@ -48,7 +49,8 @@ function updateShowInline(): void {
 }
 
 function updatePlayerName(): void {
-  if (nameInput.value) options.playerName = nameInput.value;
+  if (!nameInput.value) return;
+  options.playerName = nameInput.value;
   document.querySelectorAll(".player").forEach((e) => {
     e.textContent = options.playerName;
   });
@@ -128,7 +130,7 @@ async function reload(): Promise<void> {
   }
 
   updateShowInline();
-  updatePlayerName();
+  // updatePlayerName();
   status.hidden = true;
 }
 

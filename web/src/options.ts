@@ -23,8 +23,8 @@ export const options = {
     setBoolOption(SHOW_INLINE, on);
   },
 
-  get playerName(): string {
-    return sessionStorage.getItem(PLAYER_NAME) ?? DEFAULT_PLAYER_NAME;
+  get playerName(): string | null {
+    return sessionStorage.getItem(PLAYER_NAME);
   },
 
   set playerName(name: string) {
