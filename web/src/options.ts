@@ -16,7 +16,7 @@ export const options = {
   },
 
   get showInline(): boolean {
-    return getBoolOption(SHOW_INLINE);
+    return getBoolOption(SHOW_INLINE, true);
   },
 
   set showInline(on: boolean) {
