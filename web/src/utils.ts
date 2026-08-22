@@ -78,7 +78,7 @@ export function elemNode(
 
 export function lookupNode(
   id: number,
-  type: "items" | "vars" | "switches" | "actors" | "dir" | "map",
+  type: "items" | "vars" | "switches" | "actors" | "dir" | "map" | "skills",
   context: Context,
 ): Node {
   let cls;
@@ -108,25 +108,49 @@ export function lookupNode(
       cls = "value";
       label = "Map";
       break;
+    case "skills":
+      cls = "item";
+      label = "Skill";
+      break;
   }
 
   let text: string = "";
   if (type == "actors" && id <= 0) {
     text = id == 0 ? "This Event" : "Player";
   } else if (type == "dir") {
-    switch (id) {
-      case 2:
-        text = "down";
-        break;
-      case 4:
-        text = "left";
-        break;
-      case 6:
-        text = "right";
-        break;
-      case 8:
-        text = "up";
-        break;
+    if (context.is2k3) {
+      switch (id) {
+        case -1:
+          text = "retain";
+          break;
+        case 0:
+          text = "up";
+          break;
+        case 1:
+          text = "right";
+          break;
+        case 2:
+          text = "down";
+          break;
+        case 3:
+          text = "left";
+          break;
+      }
+    } else {
+      switch (id) {
+        case 2:
+          text = "down";
+          break;
+        case 4:
+          text = "left";
+          break;
+        case 6:
+          text = "right";
+          break;
+        case 8:
+          text = "up";
+          break;
+      }
     }
   } else if (type == "map") {
     text = context.maps[id];
@@ -135,7 +159,7 @@ export function lookupNode(
       cls = "subtle";
     }
   } else {
-    text = context.misc[type][id - 1];
+    text = context.misc[type]![id - 1];
     if (!text) text = `${label} ${id}`;
   }
 

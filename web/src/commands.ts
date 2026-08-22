@@ -21,7 +21,11 @@ export const CODE_TO_VARIABLE_OP: { [key: number]: string } = {
   5: "%=",
 };
 
-function varValueNode(type: number, operand: number, context: Context): Node {
+export function createVarValueNode(
+  type: number,
+  operand: number,
+  context: Context,
+): Node {
   return type == 0
     ? createSpanNode(operand.toString(), "value")
     : lookupNode(operand, "vars", context);
@@ -533,7 +537,9 @@ function makeCondition(command: EventCommand, context: Context): Node[] {
         ),
       );
 
-      result.push(varValueNode(command.params[2], command.params[3], context));
+      result.push(
+        createVarValueNode(command.params[2], command.params[3], context),
+      );
       break;
     }
     case 2: {
@@ -1134,7 +1140,7 @@ function makeChangeItems(command: EventCommand, context: Context): Node[] {
     document.createTextNode(" amount of "),
     lookupNode(item, "items", context),
     document.createTextNode(" by "),
-    varValueNode(operandType, operand, context),
+    createVarValueNode(operandType, operand, context),
   ];
 }
 
@@ -1150,9 +1156,9 @@ function makeTransferPlayer(command: EventCommand, context: Context): Node[] {
   result.push(document.createTextNode(`Transfer Player to map ${mapQuote}`));
   result.push(lookupNode(command.params[1], mapLookupType, context));
   result.push(document.createTextNode(`${mapQuote}, position (`));
-  result.push(varValueNode(type, command.params[2], context));
+  result.push(createVarValueNode(type, command.params[2], context));
   result.push(document.createTextNode(","));
-  result.push(varValueNode(type, command.params[3], context));
+  result.push(createVarValueNode(type, command.params[3], context));
   result.push(document.createTextNode(dirLabel));
   result.push(lookupNode(command.params[4], dirLookupType, context));
   result.push(document.createTextNode(", "));
@@ -1170,9 +1176,9 @@ function makeSetEventLocation(command: EventCommand, context: Context): Node[] {
       document.createTextNode("Move "),
       lookupNode(command.params[0], "actors", context),
       document.createTextNode(" to ("),
-      varValueNode(appointment, command.params[1], context),
+      createVarValueNode(appointment, command.params[1], context),
       document.createTextNode(","),
-      varValueNode(appointment, command.params[2], context),
+      createVarValueNode(appointment, command.params[2], context),
       document.createTextNode(")"),
     ];
   } else {

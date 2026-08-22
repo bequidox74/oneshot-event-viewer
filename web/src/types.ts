@@ -54,4 +54,5 @@ export type MiscDefinitions = {
   vars: string[];
   switches: string[];
   actors: string[];
+  skills?: string[];
 };

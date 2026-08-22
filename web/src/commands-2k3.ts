@@ -1,4 +1,4 @@
-import { CODE_TO_VARIABLE_OP } from "./commands";
+import { CODE_TO_VARIABLE_OP, createVarValueNode } from "./commands";
 import type { Context } from "./tree";
 import type { EventCommand } from "./types";
 import {
@@ -260,6 +260,134 @@ export function makeCommand2k3(
       return result;
     }
 
+    case 10440: {
+      // ChangeSkills
+      const actorMode = params[0] as number;
+      const actor = params[1] as number;
+      const remove = params[2] != 0;
+      const skillMode = params[3] as number;
+      const skill = params[4] as number;
+
+      const result: Node[] = [document.createTextNode("Make ")];
+
+      // god i fucking hate these switches
+      switch (actorMode) {
+        case 0: {
+          // party
+          result.push(document.createTextNode("party"));
+          break;
+        }
+        case 1: {
+          // hero
+          result.push(lookupNode(actor, "actors", context));
+          break;
+        }
+        case 2: {
+          // var hero
+          result.push(
+            document.createTextNode("Actor # "),
+            lookupNode(actor, "vars", context),
+          );
+          break;
+        }
+      }
+
+      result.push(document.createTextNode(remove ? " unlearn " : " learn "));
+
+      if (skillMode == 0) result.push(lookupNode(skill, "skills", context));
+      else {
+        result.push(
+          document.createTextNode("Skill # "),
+          lookupNode(skill, "vars", context),
+        );
+      }
+
+      return result;
+    }
+
+    case 10450: {
+      // ChangeEquipment
+      const actorMode = params[0] as number;
+      const actor = params[1] as number;
+      const remove = params[2] != 0;
+      const itemType = params[3] as number;
+      const item = params[4] as number;
+
+      const result: Node[] = [document.createTextNode("Make ")];
+
+      switch (actorMode) {
+        case 0: {
+          // party
+          result.push(createValueNode("party"));
+          break;
+        }
+        case 1: {
+          // hero
+          result.push(lookupNode(actor, "actors", context));
+          break;
+        }
+        case 2: {
+          // var hero
+          result.push(
+            document.createTextNode("Actor # "),
+            lookupNode(actor, "vars", context),
+          );
+          break;
+        }
+      }
+
+      result.push(document.createTextNode(remove ? " unequip " : " equip "));
+
+      if (remove) {
+        let slot = "";
+        switch (itemType) {
+          case 0:
+            slot = "weapon";
+            break;
+          case 1:
+            slot = "shield";
+            break;
+          case 2:
+            slot = "armor";
+            break;
+          case 3:
+            slot = "helmet";
+            break;
+          case 4:
+            slot = "accessory";
+            break;
+          case 5:
+            slot = "all";
+            break;
+        }
+        result.push(createValueNode(slot));
+      } else {
+        if (itemType == 0) result.push(lookupNode(item, "items", context));
+        else {
+          result.push(
+            document.createTextNode("Item # "),
+            lookupNode(item, "vars", context),
+          );
+        }
+      }
+
+      return result;
+    }
+
+    case 10630: {
+      // ChangeSpriteAssociation
+      return [
+        document.createTextNode("Change "),
+        lookupNode(params[0], "actors", context),
+        document.createTextNode(`'s sprite to "`),
+        createValueNode(params.at(-1)),
+        document.createTextNode('", index = '),
+        createValueNode(params[1]),
+        document.createTextNode(", transparent "),
+        createOnOff(params[2] != 0),
+      ];
+    }
+
     case 10670: {
       // ChangeSystemSFX
       const sfxCtx = SYSTEM_SFX[params[0]];
@@ -291,6 +419,146 @@ export function makeCommand2k3(
         document.createTextNode(", balance "),
         createValueNode(params[3]),
       ];
+    }
+
+    case 10680: {
+      // ChangeSystemGraphics
+      return [
+        document.createTextNode('Change System Graphics to "'),
+        createValueNode(params.at(-1)),
+        document.createTextNode('", '),
+        createValueNode(`${params[0] == 0 ? "stretch" : "tiled"}`),
+        document.createTextNode(", font "),
+        createValueNode(`${params[1] == 0 ? "gothic" : "mincho"}`),
+      ];
+    }
+
+    case 10740: {
+      // EnterHeroName
+      return [
+        document.createTextNode("Enter Name for "),
+        lookupNode(params[0], "actors", context),
+        document.createTextNode(", charset = "),
+        createValueNode(params[1]),
+        document.createTextNode(", use default name = "),
+        createOnOff(params[2] == 1),
+      ];
+    }
+
+    case 10810: {
+      // Teleport
+      return [
+        document.createTextNode('Teleport player to map "'),
+        lookupNode(params[0], "map", context),
+        document.createTextNode('" to ('),
+        createValueNode(params[1]),
+        document.createTextNode(","),
+        createValueNode(params[2]),
+        document.createTextNode("), direction = "),
+        lookupNode((params[3] ?? 0) - 1, "dir", context), // TODO: verify
+      ];
+    }
+
+    case 10820: {
+      // MemorizeLocation
+      return [
+        document.createTextNode("Memorize Location, storing map -> "),
+        lookupNode(params[0], "vars", context),
+        document.createTextNode(", x -> "),
+        lookupNode(params[1], "vars", context),
+        document.createTextNode(", y -> "),
+        lookupNode(params[2], "vars", context),
+      ];
+    }
+
+    case 10830: {
+      // RecallToLocation
+      return [
+        document.createTextNode("Recall Player's Location: map <- "),
+        lookupNode(params[0], "vars", context),
+        document.createTextNode(", x <- "),
+        lookupNode(params[1], "vars", context),
+        document.createTextNode(", y <- "),
+        lookupNode(params[2], "vars", context),
+      ];
+    }
+
+    case 10860: {
+      // ChangeEventLocation
+      const result: Node[] = [
+        document.createTextNode("Change Location of Event "),
+        createValueNode(params[0]),
+        document.createTextNode(" to ("),
+        createVarValueNode(params[1], params[2], context),
+        document.createTextNode(","),
+        createVarValueNode(params[1], params[2], context),
+        document.createTextNode("), direction = "),
+        lookupNode((params[4] ?? 0) - 1, "dir", context),
+      ];
+      return result;
+    }
+
+    case 11010: {
+      // EraseScreen
+      return [
+        document.createTextNode("Erase Screen with transition "),
+        createValueNode(params[0]),
+      ];
+    }
+
+    case 11020: {
+      // ShowScreen
+      return [
+        document.createTextNode("Show Screen with transition "),
+        createValueNode(params[0]),
+      ];
+    }
+
+    case 11340: {
+      // ProceedWithMovement
+      return [document.createTextNode("Proceed with Movement")];
+    }
+
+    case 11350: {
+      // HaltAllMovement
+      return [document.createTextNode("Halt All Movement")];
+    }
+
+    case 11410: {
+      // Wait
+      return [
+        document.createTextNode("Wait "),
+        createValueNode((params[0] * 0.1).toString()),
+        document.createTextNode(" seconds"),
+      ];
+    }
+
+    case 12110: {
+      // Label
+      return [document.createTextNode("Label "), createValueNode(params[0])];
+    }
+
+    case 12120: {
+      // JumpToLabel
+      return [
+        document.createTextNode("Jump to Label "),
+        createValueNode(params[0]),
+      ];
+    }
+
+    case 12210: {
+      // BeginLoop
+      return [document.createTextNode("Begin Loop")];
+    }
+
+    case 12220: {
+      // BreakLoop
+      return [document.createTextNode("Break Loop")];
+    }
+
+    case 12320: {
+      // EraseEvent
+      return [document.createTextNode("Erase Event")];
     }
 
     case 12330: {
@@ -348,6 +616,11 @@ export function makeCommand2k3(
       }
 
       return result;
+    }
+
+    case 12510: {
+      // ReturnToTitleScreen
+      return [document.createTextNode("Return to Title Screen")];
     }
 
     case 20140: {

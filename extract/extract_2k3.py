@@ -73,17 +73,18 @@ def get_misc(edb: ET.Element) -> dict[str, list[str]]:
             out.append(getvalue(t, "name"))
         return out
 
-
     switches = load_group("switches")
     variables = load_group("variables")
     items = load_group("items")
     actors = load_group("actors")
+    skills = load_group("skills")
 
     return {
         "switches": switches,
         "vars": variables,
         "items": items,
         "actors": actors,
+        "skills": skills,
     }
 
 
@@ -106,7 +107,11 @@ def get_map(in_path: Path) -> dict:
             pout.append(out_page)
         eout["pages"] = pout
         map_events.append(eout)
-    out = {"id": map_id, "name": None, "events": map_events}  # None to preserve order of keys in a dict
+    out = {
+        "id": map_id,
+        "name": None,
+        "events": map_events,
+    }  # None to preserve order of keys in a dict
     return out
 
 
@@ -128,7 +133,9 @@ def parse_page_2k3(pin: ET.Element) -> dict:
     if getflag(flags, "variable"):
         cout["var"] = int(getvalue(cin, "variable_id"))
         cout["value"] = int(getvalue(cin, "variable_value"))
-        cout["oper"] = int(getvalue(cin, "compare_operator"))  # see https://github.com/EasyRPG/Player/blob/212f3466c9f276ff7cade5a5ead78d3a151343ac/src/game_interpreter_shared.h#L184
+        cout["oper"] = int(
+            getvalue(cin, "compare_operator")
+        )  # see https://github.com/EasyRPG/Player/blob/212f3466c9f276ff7cade5a5ead78d3a151343ac/src/game_interpreter_shared.h#L184
 
     # these are only used in 2k3
     add_condition("item", "item_id")
