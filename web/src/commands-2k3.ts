@@ -1,4 +1,8 @@
-import { CODE_TO_VARIABLE_OP, createVarValueNode } from "./commands";
+import {
+  CODE_TO_VARIABLE_OP,
+  createVarValueNode,
+  createTone,
+} from "./commands";
 import type { Context } from "./tree";
 import type { EventCommand } from "./types";
 import {
@@ -24,6 +28,10 @@ const SYSTEM_SFX = [
   "enemy kill",
   "use item",
 ];
+
+//
+// ALL HOPE ABANDON YE WHO ENTER HERE
+//
 
 export function makeCommand2k3(
   command: EventCommand,
@@ -511,6 +519,71 @@ export function makeCommand2k3(
       return [
         document.createTextNode("Show Screen with transition "),
         createValueNode(params[0]),
+      ];
+    }
+
+    case 11030: {
+      // TintScreen
+      return [
+        document.createTextNode("Tint Screen to "),
+        ...createTone({
+          red: params[0],
+          green: params[1],
+          blue: params[2],
+          saturation: params[3],
+        }),
+        document.createTextNode(" over "),
+        createValueNode(params[4]),
+        document.createTextNode(" seconds, wait = "),
+        createOnOff(params[5] != 0),
+      ];
+    }
+
+    case 11040: {
+      // FlashScreen
+      const mode = params[6] ?? 0;
+      let text = "";
+      switch (mode) {
+        case 0:
+          text = "Flash Screen once to ";
+          break;
+        case 1:
+          text = "Begin Screen Flash to ";
+          break;
+        case 2:
+          text = "End Screen Flash";
+          break;
+      }
+
+      const result: Node[] = [document.createTextNode(text)];
+      if (mode != 2) {
+        result.push(
+          ...createTone({
+            red: params[0],
+            green: params[1],
+            blue: params[2],
+            saturation: params[3],
+          }),
+          document.createTextNode(" over "),
+          createValueNode((params[4] * 0.1).toString()),
+          document.createTextNode(" seconds, wait = "),
+          createOnOff(params[5] != 0),
+        );
+      }
+      return result;
+    }
+
+    case 11050: {
+      // ShakeScreen
+      return [
+        document.createTextNode("Shake Screen with strength "),
+        createValueNode(params[0]),
+        document.createTextNode(", speed "),
+        createValueNode(params[1]),
+        document.createTextNode(" over "),
+        createValueNode((params[2] * 0.1).toString()),
+        document.createTextNode(" seconds, wait = "),
+        createOnOff(params[3] != 0),
       ];
     }
 

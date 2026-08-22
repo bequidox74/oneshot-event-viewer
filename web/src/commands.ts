@@ -37,9 +37,10 @@ type Tone = {
   blue: number;
   gray?: number;
   alpha?: number;
+  saturation?: number;
 };
 
-function makeTone(tone: Tone): Node[] {
+export function createTone(tone: Tone): Node[] {
   const red = createSpanNode(`R:${tone.red}`, "color1");
   const green = createSpanNode(`G:${tone.green}`, "color2");
   const blue = createSpanNode(`B:${tone.blue}`, "color4");
@@ -50,11 +51,16 @@ function makeTone(tone: Tone): Node[] {
   let alpha: HTMLSpanElement | null = null;
   if (tone.alpha) alpha = createSpanNode(`g:${tone.alpha}`, "color7");
 
+  let saturation: HTMLSpanElement | null = null;
+  if (tone.saturation)
+    saturation = createSpanNode(`s:${tone.saturation}`, "color7");
+
   addTooltip(red, `Red = ${tone.red}`);
   addTooltip(green, `Green = ${tone.green}`);
   addTooltip(blue, `Blue = ${tone.blue}`);
   if (gray) addTooltip(gray, `Gray = ${tone.gray}`);
   if (alpha) addTooltip(alpha, `Alpha = ${tone.alpha}`);
+  if (saturation) addTooltip(saturation, `Saturation = ${tone.saturation}`);
 
   const result: Node[] = [
     red,
@@ -70,6 +76,10 @@ function makeTone(tone: Tone): Node[] {
   if (alpha) {
     result.push(document.createTextNode(", "));
     result.push(alpha);
+  }
+  if (saturation) {
+    result.push(document.createTextNode(", "));
+    result.push(saturation);
   }
   return result;
 }
@@ -190,7 +200,7 @@ export function makeCommand(
       const tone = params[0];
       return [
         document.createTextNode("Change Screen Color Tone to "),
-        ...makeTone(tone),
+        ...createTone(tone),
         document.createTextNode(" over "),
         createSpanNode(params[1] as string, "value"),
         document.createTextNode(" frames"),
@@ -199,7 +209,7 @@ export function makeCommand(
     case 224: // Screen Flash
       return [
         document.createTextNode("Start Screen Flash to color "),
-        ...makeTone(params[0]),
+        ...createTone(params[0]),
         document.createTextNode(" over "),
         createSpanNode(params[1] as string, "value"),
         document.createTextNode(" frames"),
@@ -223,7 +233,7 @@ export function makeCommand(
         document.createTextNode("Change Picture "),
         createSpanNode(params[0] as string, "value"),
         document.createTextNode("'s tone to "),
-        ...makeTone(params[1]),
+        ...createTone(params[1]),
         document.createTextNode(" over "),
         createSpanNode(params[2] as string, "value"),
         document.createTextNode(" frames"),
