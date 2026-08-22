@@ -194,6 +194,9 @@ ul.choices {
 .tooltip-base .tooltip-text {
   font-size: 0.8em;
 }
+*.tooltip-base {
+  text-decoration: solid underline;
+}
 
 .note {
   max-width: 20em;

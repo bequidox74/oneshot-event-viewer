@@ -92,6 +92,7 @@ async function reload(): Promise<void> {
     misc: miscDefs,
     maps: maps,
     dialogueOnly: options.dialogueOnly,
+    is2k3: game == "os14",
   };
 
   if (map === "common") {
@@ -116,6 +117,7 @@ async function reload(): Promise<void> {
 
     const loadedMaps = await Promise.all(promises);
     for (const map of loadedMaps) {
+      context.map = map;
       const tree = makeMap(map, context);
       root.appendChild(tree);
     }

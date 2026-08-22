@@ -15,6 +15,15 @@ export type Context = {
   misc: MiscDefinitions;
   maps: Record<string, string>;
   dialogueOnly: boolean;
+  is2k3: boolean;
+  speaker?: {
+    index: number;
+    name: string;
+  };
+  map?: MapDefinition;
+  event?: MapEvent | CommonEvent;
+  pageId?: number;
+  page?: EventPage;
 };
 
 const DIALOGUE_ONLY_CODES = [101, 102, 106, 111, 355, 411];
@@ -48,6 +57,7 @@ export function makeMap(map: MapDefinition, context: Context): Node {
   root.appendChild(details);
 
   for (const event of map.events) {
+    context.event = event;
     details.appendChild(makeMapEvent(event, root.id, context));
   }
 
@@ -111,6 +121,8 @@ function makeMapEvent(
 
   content.appendChild(info);
   for (const [i, page] of event.pages.entries()) {
+    context.pageId = i;
+    context.page = page;
     content.appendChild(makePage(page, root.id, i, context));
   }
 
@@ -226,6 +238,8 @@ function makeEventBase(
 function makeEventCommands(commands: EventCommand[], context: Context): Node {
   const root = document.createElement("div");
   root.classList.add("commands");
+
+  if (!commands) return root;
 
   function shouldSkip(code: number): boolean {
     return context.dialogueOnly && !DIALOGUE_ONLY_CODES.includes(code);

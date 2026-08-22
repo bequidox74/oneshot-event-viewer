@@ -81,7 +81,7 @@ def get_misc(edb: ET.Element) -> dict[str, list[str]]:
 
     return {
         "switches": switches,
-        "variables": variables,
+        "vars": variables,
         "items": items,
         "actors": actors,
     }
@@ -165,7 +165,9 @@ def parse_commands_old(commands: ET.Element) -> list[dict]:
                 cout["params"] = [string]
             case 20110:  # ShowMessage_2 -> 401 More Text
                 cout = None
-                out[-1]["params"][0] += string
+                out[-1]["params"][0] += " " + string
+            case 10 | 12410 | 20141 | 22011 | 22210:  # suppress empties
+                cout = None
             case _:
                 pass
 

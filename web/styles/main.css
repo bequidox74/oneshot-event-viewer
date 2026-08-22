@@ -16,3 +16,7 @@ h1 {
   margin-top: 0.2em;
   margin-bottom: 0.2em;
 }
+
+#navigation a {
+  margin-right: 0.8em;
+}

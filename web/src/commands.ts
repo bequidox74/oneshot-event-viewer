@@ -1,3 +1,4 @@
+import { makeCommand2k3 } from "./commands-2k3";
 import type { Context } from "./tree";
 import type { AudioFile, EventCommand } from "./types";
 import { addTooltip, createSpanNode, lookupNode } from "./utils";
@@ -11,13 +12,25 @@ const CODE_TO_COMPARISON: { [key: number]: string } = {
   5: "!=",
 };
 
-const CODE_TO_VARIABLE_OP: { [key: number]: string } = {
+export const CODE_TO_VARIABLE_OP: { [key: number]: string } = {
   0: "=",
   1: "+=",
   2: "-=",
   3: "*=",
   4: "/=",
   5: "%=",
+};
+
+// Mappings from 2K3 speaker name+index to XP portraits.
+const SPEAKER_2K3_MAP: Record<string, string[]> = {
+  niko: [
+    "niko",
+    "niko_speak",
+    "niko_eyeclosed",
+    "niko_pancakes",
+    "niko_surprised",
+    "niko_sad",
+  ],
 };
 
 function varValueNode(type: number, operand: number, context: Context): Node {
@@ -75,8 +88,11 @@ export function makeCommand(
 ): Node | Node[] {
   // see https://github.com/elizagamedev/mkxp-oneshot/blob/master/scripts/Interpreter_2.rb
   const params = command.params;
+  if (command.code != 10110 && command.code > 10000)
+    return makeCommand2k3(command, context);
   switch (command.code) {
     case 101:
+    case 10110:
       return makeDialogueBox(command, context);
     case 106: {
       return [
@@ -239,9 +255,7 @@ export function makeCommand(
     case 250:
       return makePlaySe(command);
     case 251:
-      return [
-        document.createTextNode("Stop Sound Effect")
-      ];
+      return [document.createTextNode("Stop Sound Effect")];
     case 322:
       return [
         document.createTextNode("Change Actor Graphic of "),
@@ -269,7 +283,7 @@ export function makeCommand(
   }
 }
 
-function makePortrait(face: string): HTMLElement {
+function makePortrait(face: string, addLabel: boolean): HTMLElement {
   const root = document.createElement("div");
   root.classList.add("portrait-container");
 
@@ -277,13 +291,15 @@ function makePortrait(face: string): HTMLElement {
   const file = face.substring(1).toLowerCase();
   image.classList.add("portrait");
   image.src = `faces/${file}.png`;
-  image.title = face;
+  if (addLabel) image.title = face;
   root.appendChild(image);
 
-  const label = document.createElement("span");
-  label.classList.add("portrait-label");
-  label.textContent = face;
-  root.appendChild(label);
+  if (addLabel) {
+    const label = document.createElement("span");
+    label.classList.add("portrait-label");
+    label.textContent = face;
+    root.appendChild(label);
+  }
 
   return root;
 }
@@ -295,6 +311,11 @@ function makeDialogueBox(command: EventCommand, context: Context): HTMLElement {
   let text: string = rawText;
 
   let face: string = "";
+  if (context.is2k3 && context.speaker) {
+    const portraits = SPEAKER_2K3_MAP[context.speaker.name];
+    if (portraits) face = "@" + portraits[context.speaker.index];
+  }
+
   let note = false;
   if (rawText.startsWith("@")) {
     let space = rawText.indexOf(" ");
@@ -316,7 +337,7 @@ function makeDialogueBox(command: EventCommand, context: Context): HTMLElement {
   } else {
     if (!note) root.classList.add("dialogue-box");
     if (face) {
-      const portrait = makePortrait(face);
+      const portrait = makePortrait(face, !context.is2k3);
       root.appendChild(portrait);
     }
   }
@@ -329,6 +350,7 @@ function makeDialogueBox(command: EventCommand, context: Context): HTMLElement {
 }
 
 function parseEscapes(raw: string, context: Context): Node[] {
+  const is2k3 = context.is2k3;
   const result: Node[] = [];
   let color = 0;
   let start = 0;
@@ -372,8 +394,17 @@ function parseEscapes(raw: string, context: Context): Node[] {
           result.push(document.createTextNode("\\"));
           break;
         }
+        case "!": {
+          result.push(makeInlineWait("!"));
+          break;
+        }
         case ">": {
-          result.push(makeInlineWait());
+          if (is2k3) console.error("> 2k3 escape");
+          else result.push(makeInlineWait(">"));
+          break;
+        }
+        case "<": {
+          console.error("< 2k3 escape");
           break;
         }
         case "@": {
@@ -445,10 +476,10 @@ function makeInlineLongPause(): HTMLElement {
   return root;
 }
 
-function makeInlineWait(): HTMLElement {
+function makeInlineWait(label: string): HTMLElement {
   const root = document.createElement("span");
   root.classList.add("inline", "inline-wait");
-  root.textContent = ">";
+  root.textContent = label;
   addTooltip(root, "Wait for Action");
   return root;
 }
@@ -458,7 +489,7 @@ function makeInlinePortraitChange(face: string): HTMLElement {
   root.classList.add("inline", "inline-change");
   root.textContent = "@";
 
-  const portrait = makePortrait(face);
+  const portrait = makePortrait(face, true);
   portrait.insertBefore(
     createSpanNode("Set portrait:", "tooltip-text"),
     portrait.firstChild,

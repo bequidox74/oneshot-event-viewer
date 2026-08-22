@@ -54,6 +54,19 @@ export function createSpanNode(
   return span;
 }
 
+export function createValueNode(text: string): HTMLSpanElement {
+  return createSpanNode(text, "value");
+}
+
+export function createVariableNode(text: string): HTMLSpanElement {
+  return createSpanNode(text, "variable");
+}
+
+export function createOnOff(value: boolean): HTMLSpanElement {
+  const on = value ? "on" : "off";
+  return createSpanNode(on.toUpperCase(), on);
+}
+
 export function elemNode(
   elem: string,
   ...children: (string | Node)[]
@@ -134,12 +147,13 @@ export function lookupNode(
 export function addTooltip(
   element: HTMLElement,
   content: string | HTMLElement,
-): void {
+): Node {
   element.classList.add("tooltip-base");
   const contentElem =
     content instanceof Node ? content : createSpanNode(content, "tooltip-text");
   contentElem.classList.add("tooltip");
   element.appendChild(contentElem);
+  return contentElem;
 }
 
 export function getBoolOption(key: string, def: boolean = false): boolean {
