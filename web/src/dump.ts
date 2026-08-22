@@ -48,7 +48,7 @@ function updateShowInline(): void {
 }
 
 function updatePlayerName(): void {
-  options.playerName = nameInput.value ? nameInput.value : nameInput.placeholder;
+  if (nameInput.value) options.playerName = nameInput.value;
   document.querySelectorAll(".player").forEach((e) => {
     e.textContent = options.playerName;
   });
