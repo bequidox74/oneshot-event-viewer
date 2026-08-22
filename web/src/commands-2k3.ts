@@ -338,7 +338,7 @@ export function makeCommand2k3(
             name: "narrator",
             index: 0,
           };
-        } else if (eventId == 15) {
+        } else if (eventId == 28) {
           // Begin Document
           context.speaker = {
             name: "0",

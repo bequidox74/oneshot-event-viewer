@@ -21,18 +21,6 @@ export const CODE_TO_VARIABLE_OP: { [key: number]: string } = {
   5: "%=",
 };
 
-// Mappings from 2K3 speaker name+index to XP portraits.
-const SPEAKER_2K3_MAP: Record<string, string[]> = {
-  niko: [
-    "niko",
-    "niko_speak",
-    "niko_eyeclosed",
-    "niko_pancakes",
-    "niko_surprised",
-    "niko_sad",
-  ],
-};
-
 function varValueNode(type: number, operand: number, context: Context): Node {
   return type == 0
     ? createSpanNode(operand.toString(), "value")
@@ -312,8 +300,7 @@ function makeDialogueBox(command: EventCommand, context: Context): HTMLElement {
 
   let face: string = "";
   if (context.is2k3 && context.speaker) {
-    const portraits = SPEAKER_2K3_MAP[context.speaker.name];
-    if (portraits) face = "@" + portraits[context.speaker.index];
+    face = "@os14/" + context.speaker.name + context.speaker.index;
   }
 
   let note = false;
@@ -322,20 +309,20 @@ function makeDialogueBox(command: EventCommand, context: Context): HTMLElement {
     if (space < 0) space = rawText.length;
     face = rawText.substring(0, space);
     text = rawText.substring(space + 1);
-  } else if (rawText.startsWith("$")) {
+  } else if (rawText.startsWith("$") || face === "@os14/00") {
     root.classList.add("note");
     note = true;
-    text = rawText.substring(1);
+    if (!context.is2k3) text = rawText.substring(1);
   }
 
-  if (face === "@ed") {
+  if (face === "@ed" || face === "@os14/narrator0") {
     root.classList.add("ed-speak");
   } else if (face === "@desktop") {
     root.classList.add("desktop");
   } else if (face === "@credits") {
     root.classList.add("credits");
-  } else {
-    if (!note) root.classList.add("dialogue-box");
+  } else if (!note) {
+    root.classList.add("dialogue-box");
     if (face) {
       const portrait = makePortrait(face, !context.is2k3);
       root.appendChild(portrait);
@@ -357,6 +344,10 @@ function parseEscapes(raw: string, context: Context): Node[] {
   let end = 0;
 
   raw = raw.replaceAll("’", "'"); // HACK: workaround until the preprocesor is updated
+  if (context.is2k3) {
+    raw = raw.replaceAll("_PlayerName_xxxxxxxxxxxxxxxxxxxx", "\\p");
+    raw = raw.replaceAll("_PlayerName_guess_xxxxxxxxxxxxxx", "\\p");
+  }
 
   function flush() {
     const text = raw.substring(start, end);

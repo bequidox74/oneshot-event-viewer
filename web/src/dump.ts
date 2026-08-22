@@ -3,7 +3,11 @@ import { makeCommonEvents, makeMap, type Context } from "./tree";
 import type { CommonEvents, MapDefinition } from "./types";
 import { setCheckboxOn } from "./utils";
 
-const NAME_PLACEHOLDERS: ReadonlyArray<string> = ["Player", "Chat"];
+const NAME_PLACEHOLDERS: ReadonlyArray<string> = [
+  "Player",
+  "chat",
+  "_PlayerName_xxxxxxxxxxxxxxxxxxxx",
+];
 const FUNNY_PLACEHOLDER_CHANCE = 0.5;
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -44,7 +48,7 @@ function updateShowInline(): void {
 }
 
 function updatePlayerName(): void {
-  if (nameInput.value) options.playerName = nameInput.value;
+  options.playerName = nameInput.value ? nameInput.value : nameInput.placeholder;
   document.querySelectorAll(".player").forEach((e) => {
     e.textContent = options.playerName;
   });
