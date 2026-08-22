@@ -404,12 +404,16 @@ function parseEscapes(raw: string, context: Context): Node[] {
           break;
         }
         case ">": {
-          if (is2k3) console.error("> 2k3 escape");
+          if (is2k3) result.push(makeInlineInstantStart());
           else result.push(makeInlineWait(">"));
           break;
         }
         case "<": {
-          console.error("< 2k3 escape");
+          result.push(makeInlineInstantStop());
+          break;
+        }
+        case "^": {
+          result.push(makeInlineForceClose());
           break;
         }
         case "@": {
@@ -486,6 +490,30 @@ function makeInlineWait(label: string): HTMLElement {
   root.classList.add("inline", "inline-wait");
   root.textContent = label;
   addTooltip(root, "Wait for Action");
+  return root;
+}
+
+function makeInlineForceClose(): HTMLElement {
+  const root = document.createElement("span");
+  root.classList.add("inline");
+  root.textContent = "^";
+  addTooltip(root, "Force Message Close");
+  return root;
+}
+
+function makeInlineInstantStart(): HTMLElement {
+  const root = document.createElement("span");
+  root.classList.add("inline");
+  root.textContent = ">";
+  addTooltip(root, "Instant Speed Start");
+  return root;
+}
+
+function makeInlineInstantStop(): HTMLElement {
+  const root = document.createElement("span");
+  root.classList.add("inline");
+  root.textContent = "<";
+  addTooltip(root, "Instant Speed Stop");
   return root;
 }
 
