@@ -24,6 +24,7 @@ export type Context = {
   event?: MapEvent | CommonEvent;
   pageId?: number;
   page?: EventPage;
+  nativeFunc?: number;
 };
 
 const DIALOGUE_ONLY_CODES = new Set([

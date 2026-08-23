@@ -7,11 +7,9 @@ import {
 import type { Context } from "./tree";
 import type { EventCommand } from "./types";
 import {
-  addTooltip,
   createOnOff,
   createSpanNode,
   createValueNode,
-  createVariableNode,
   lookupNode,
 } from "./utils";
 
@@ -34,6 +32,23 @@ const CHARACTER_MAP: Record<number, string> = {
   10001: "player",
   10005: "this event",
 };
+
+const FUNC_TO_NAME_MAP: string[] = [
+  "func_GuessName",
+  "func_SetName",
+  "func_SetNameEntry",
+  "func_ShakeWindow",
+  "func_SetWallpaper",
+  "func_MessageBox",
+  "func_LeaveWindow",
+  "func_Save",
+  "func_WriteItem",
+  "func_Load",
+  "func_ReadItem",
+  "func_Document",
+  "func_End",
+  "func_SetCloseEnabled",
+];
 
 //
 // ALL HOPE ABANDON YE WHO ENTER HERE
@@ -158,6 +173,10 @@ export function makeCommand2k3(
         case 0: {
           // single
           result.push(lookupNode(params[1], "vars", context));
+          if (params[1] == 1) {
+            // changing "func"
+            context.nativeFunc = params[4];
+          }
           break;
         }
         case 1: {
@@ -405,27 +424,28 @@ export function makeCommand2k3(
     case 10670: {
       // ChangeSystemSFX
       const sfxCtx = SYSTEM_SFX[params[0]];
-      const file = createValueNode(params.at(-1));
-      if (file.textContent == "_func") {
-        const tooltip = addTooltip(
-          file,
-          "Call internal function specified by variable ",
-        ) as HTMLSpanElement;
-        tooltip.append(createVariableNode("func"));
-        tooltip.style.color = "white";
-      } else if (file.textContent == "_init") {
-        const tooltip = addTooltip(
-          file,
-          "Call internal initialization routine",
-        ) as HTMLSpanElement;
-        tooltip.style.color = "white";
-      }
+      const file = params.at(-1);
 
-      return [
+      // if (file.textContent == "_func") {
+      //   const tooltip = addTooltip(
+      //     file,
+      //     "Call internal function specified by variable ",
+      //   ) as HTMLSpanElement;
+      //   tooltip.append(createVariableNode("func"));
+      //   tooltip.style.color = "white";
+      // } else if (file.textContent == "_init") {
+      //   const tooltip = addTooltip(
+      //     file,
+      //     "Call internal initialization routine",
+      //   ) as HTMLSpanElement;
+      //   tooltip.style.color = "white";
+      // }
+
+      const result: Node[] = [
         document.createTextNode("Change System SFX "),
         createValueNode(sfxCtx),
         document.createTextNode(' to "'),
-        file,
+        createValueNode(file),
         document.createTextNode('" with volume '),
         createValueNode(params[1]),
         document.createTextNode(", tempo "),
@@ -433,6 +453,50 @@ export function makeCommand2k3(
         document.createTextNode(", balance "),
         createValueNode(params[3]),
       ];
+
+      const isSpecial = file == "_func" || file == "_init";
+      if (isSpecial) {
+        const details = document.createElement("details");
+        const summary = document.createElement("summary");
+        details.classList.add("explanation");
+        summary.textContent = "Explanation";
+        details.appendChild(summary);
+
+        if (file == "_init") {
+          const calls = document.createElement("a");
+          calls.textContent = "Calls";
+          calls.href =
+            "https://github.com/elizagamedev/oneshot-legacy/blob/9bad01ae49e001e4c145c087a6026bd87b1e15e5/dll/main.c#L163";
+
+          const routine = document.createElement("a");
+          routine.textContent = "routine";
+          routine.href =
+            "https://github.com/elizagamedev/oneshot-legacy/blob/9bad01ae49e001e4c145c087a6026bd87b1e15e5/dll/funcs.c#L24";
+
+          details.append(
+            calls,
+            " internal initialization ",
+            routine,
+            " from the C wrapper by hooking sound file loading.",
+          );
+        } else if (file == "_func") {
+          const func = FUNC_TO_NAME_MAP[context.nativeFunc!];
+          const link = document.createElement("a");
+          link.textContent = "function";
+          link.href =
+            "https://github.com/elizagamedev/oneshot-legacy/blob/9bad01ae49e001e4c145c087a6026bd87b1e15e5/dll/funcs.c#L474";
+          details.append(
+            "Calls an internal ",
+            link,
+            ' "',
+            createValueNode(func),
+            '" from the C wrapper by hooking sound file loading.',
+          );
+        }
+        result.push(details);
+      }
+
+      return result;
     }
 
     case 10680: {
@@ -594,7 +658,6 @@ export function makeCommand2k3(
     }
 
     case 11060: {
-      // break;
       // PanScreen
       const cmd = params[0];
       const direction = params[1];
