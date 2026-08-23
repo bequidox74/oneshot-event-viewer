@@ -125,12 +125,11 @@ async function reload(): Promise<void> {
     for (const map of loadedMaps) {
       context.map = map;
       const tree = makeMap(map, context);
-      root.appendChild(tree);
+      if (tree) root.appendChild(tree);
     }
   }
 
   updateShowInline();
-  // updatePlayerName();
   status.hidden = true;
 }
 

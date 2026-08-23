@@ -26,7 +26,12 @@ export type Context = {
   page?: EventPage;
 };
 
-const DIALOGUE_ONLY_CODES = [101, 102, 106, 111, 355, 411];
+const DIALOGUE_ONLY_CODES = new Set([
+  101, // show text
+  10110, // show text
+  // 10140, // show options
+  // 20140, // choice option
+]);
 
 export function makeCommonEvents(events: CommonEvents, context: Context): Node {
   const root = document.createElement("div");
@@ -45,7 +50,7 @@ export function makeCommonEvents(events: CommonEvents, context: Context): Node {
   return root;
 }
 
-export function makeMap(map: MapDefinition, context: Context): Node {
+export function makeMap(map: MapDefinition, context: Context): Node | null {
   const root = document.createElement("div");
   root.id = `map${map.id}`;
 
@@ -56,11 +61,16 @@ export function makeMap(map: MapDefinition, context: Context): Node {
   });
   root.appendChild(details);
 
+  let hasEvents = false;
   for (const event of map.events) {
     context.event = event;
-    details.appendChild(makeMapEvent(event, root.id, context));
+    const mapEvent = makeMapEvent(event, root.id, context);
+    if (!mapEvent) continue;
+    details.appendChild(mapEvent);
+    hasEvents = true;
   }
 
+  if (!hasEvents) return null;
   return root;
 }
 
@@ -103,29 +113,36 @@ function makeMapEvent(
   event: MapEvent,
   parentId: string,
   context: Context,
-): Node {
+): Node | null {
   const [root, content] = makeEventBase(event, parentId);
 
   const info = document.createElement("div");
   info.classList.add("event-info");
 
-  const posSpan = document.createElement("div");
-  posSpan.append(
-    document.createTextNode("Position: ("),
-    createSpanNode(event.x.toString(), "value"),
-    document.createTextNode(","),
-    createSpanNode(event.y.toString(), "value"),
-    document.createTextNode(")"),
-  );
-  info.appendChild(posSpan);
+  if (!context.dialogueOnly) {
+    const posSpan = document.createElement("div");
+    posSpan.append(
+      document.createTextNode("Position: ("),
+      createSpanNode(event.x.toString(), "value"),
+      document.createTextNode(","),
+      createSpanNode(event.y.toString(), "value"),
+      document.createTextNode(")"),
+    );
+    info.appendChild(posSpan);
+  }
 
   content.appendChild(info);
+  let hasPages = false;
   for (const [i, page] of event.pages.entries()) {
     context.pageId = i;
     context.page = page;
-    content.appendChild(makePage(page, root.id, i, context));
+    const pageTree = makePage(page, root.id, i, context);
+    if (!pageTree) continue;
+    content.appendChild(pageTree);
+    hasPages = true;
   }
 
+  if (!hasPages) return null;
   return root;
 }
 
@@ -134,7 +151,7 @@ function makePage(
   parentId: string,
   index: number,
   context: Context,
-): Node {
+): Node | null {
   const root = document.createElement("div");
   root.id = parentId + `-p${index}`;
   root.classList.add("page");
@@ -145,7 +162,7 @@ function makePage(
     linkId: parentId,
   });
 
-  if (page.condition) {
+  if (page.condition && !context.dialogueOnly) {
     const container = document.createElement("div");
     container.classList.add("page-cond");
 
@@ -203,7 +220,9 @@ function makePage(
     details.appendChild(container);
   }
 
-  details.appendChild(makeEventCommands(page.list, context));
+  const eventCommands = makeEventCommands(page.list, context) as HTMLElement;
+  if (!eventCommands.hasChildNodes()) return null;
+  details.appendChild(eventCommands);
   root.appendChild(details);
 
   return root;
@@ -241,13 +260,14 @@ function makeEventCommands(commands: EventCommand[], context: Context): Node {
 
   if (!commands) return root;
 
-  function shouldSkip(code: number): boolean {
-    return context.dialogueOnly && !DIALOGUE_ONLY_CODES.includes(code);
+  function shouldSkip(command: EventCommand): boolean {
+    if (command.code == 355 && command.params[0].startsWith("EdText"))
+      return false;
+    return context.dialogueOnly && !DIALOGUE_ONLY_CODES.has(command.code);
   }
 
   const stack: Node[] = [root];
   for (const command of commands) {
-    if (shouldSkip(command.code)) continue;
     const newLevel = command.indent ?? 0;
 
     while (stack.length > newLevel + 1) {
@@ -256,10 +276,12 @@ function makeEventCommands(commands: EventCommand[], context: Context): Node {
 
     const commandDiv = document.createElement("div");
     commandDiv.classList.add("command");
+
     const result = makeCommand(command, context);
+    if (shouldSkip(command)) continue;
+
     if (Array.isArray(result)) commandDiv.append(...result);
     else commandDiv.append(result);
-
     stack.at(-1)!.appendChild(commandDiv);
     stack.push(commandDiv);
   }

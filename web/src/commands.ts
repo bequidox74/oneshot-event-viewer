@@ -692,13 +692,15 @@ function makeWhenChoice(command: EventCommand): Node[] {
 
 function makeScript(command: EventCommand, context: Context): Node[] {
   const result: Node[] = [];
-  result.push(document.createTextNode("Script: "));
   const code = command.params[0] as string;
+  if (!context.dialogueOnly) {
+    result.push(document.createTextNode("Script: "));
 
-  const script = document.createElement("div");
-  script.classList.add("code");
-  script.textContent = code;
-  result.push(script);
+    const script = document.createElement("div");
+    script.classList.add("code");
+    script.textContent = code;
+    result.push(script);
+  }
 
   if (code.startsWith("EdText.")) {
     const box = makeEdText(code, context);
