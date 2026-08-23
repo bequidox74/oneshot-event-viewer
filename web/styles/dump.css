@@ -168,14 +168,17 @@ ul.choices {
 .inline {
   display: inline-block;
   text-align: center;
-  width: 24px;
-  height: 24px;
+  padding-left: 0.3em;
+  padding-right: 0.3em;
 
   border: 1px solid white;
   border-radius: 2px;
 
   margin-left: 2px;
   margin-right: 2px;
+}
+.inline.tooltip-base {
+  text-decoration: none;
 }
 
 .tooltip-base {

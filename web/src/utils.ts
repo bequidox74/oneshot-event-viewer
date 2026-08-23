@@ -80,6 +80,7 @@ export function lookupNode(
   id: number,
   type: "items" | "vars" | "switches" | "actors" | "dir" | "map" | "skills",
   context: Context,
+  tooltip: boolean = true,
 ): Node {
   let cls;
   let label;
@@ -164,7 +165,7 @@ export function lookupNode(
   }
 
   const out = createSpanNode(text, cls);
-  addTooltip(out, `${label} ${id}`);
+  if (tooltip) addTooltip(out, `${label} ${id}`);
   return out;
 }
 

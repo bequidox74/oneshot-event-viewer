@@ -22,6 +22,8 @@ export const CODE_TO_VARIABLE_OP: { [key: number]: string } = {
   5: "%=",
 };
 
+const DEBUG_DISABLE_ESCAPE_PROCESSING = false;
+
 export function createVarValueNode(
   type: number,
   operand: number,
@@ -352,6 +354,10 @@ function makeDialogueBox(command: EventCommand, context: Context): HTMLElement {
 }
 
 function parseEscapes(raw: string, context: Context): Node[] {
+  if (DEBUG_DISABLE_ESCAPE_PROCESSING) {
+    return [document.createTextNode(raw)];
+  }
+
   const is2k3 = context.is2k3;
   const result: Node[] = [];
   let color = 0;
@@ -439,9 +445,9 @@ function parseEscapes(raw: string, context: Context): Node[] {
           break;
         }
         case "v": {
-          const index = parseInt(raw[end + 1]);
-          end += 3;
           start = raw.indexOf("]", start + 1) + 1;
+          const index = parseInt(raw.substring(end + 1, start));
+          end += 3;
           result.push(makeInlineVariable(index, color, context));
           break;
         }
@@ -470,52 +476,36 @@ function parseEscapes(raw: string, context: Context): Node[] {
   return result;
 }
 
+function makeInline(text: string, tooltip?: string | HTMLElement): HTMLElement {
+  const span = document.createElement("span");
+  span.classList.add("inline");
+  span.textContent = text;
+  if (tooltip) addTooltip(span, tooltip);
+  return span;
+}
+
 function makeInlinePause(): HTMLElement {
-  const root = document.createElement("span");
-  root.classList.add("inline", "inline-pause");
-  root.textContent = ".";
-  addTooltip(root, "Short Pause");
-  return root;
+  return makeInline(".", "Short Pause");
 }
 
 function makeInlineLongPause(): HTMLElement {
-  const root = document.createElement("span");
-  root.classList.add("inline", "inline-longpause");
-  root.textContent = "|";
-  addTooltip(root, "Long Pause");
-  return root;
+  return makeInline("|", "Long Pause");
 }
 
 function makeInlineWait(label: string): HTMLElement {
-  const root = document.createElement("span");
-  root.classList.add("inline", "inline-wait");
-  root.textContent = label;
-  addTooltip(root, "Wait for Action");
-  return root;
+  return makeInline(label, "Wait for Action");
 }
 
 function makeInlineForceClose(): HTMLElement {
-  const root = document.createElement("span");
-  root.classList.add("inline");
-  root.textContent = "^";
-  addTooltip(root, "Force Message Close");
-  return root;
+  return makeInline("^", "Force Message Close");
 }
 
 function makeInlineInstantStart(): HTMLElement {
-  const root = document.createElement("span");
-  root.classList.add("inline");
-  root.textContent = ">";
-  addTooltip(root, "Instant Speed Start");
-  return root;
+  return makeInline(">", "Instant Speed Start");
 }
 
 function makeInlineInstantStop(): HTMLElement {
-  const root = document.createElement("span");
-  root.classList.add("inline");
-  root.textContent = "<";
-  addTooltip(root, "Instant Speed Stop");
-  return root;
+  return makeInline("<", "Instant Speed Stop");
 }
 
 function makeInlinePortraitChange(face: string): HTMLElement {
@@ -538,13 +528,15 @@ function makeInlineVariable(
   color: number,
   context: Context,
 ): HTMLElement {
-  let varName = context.misc.vars[index];
-  if (!varName) varName = `Variable ${index}`;
-  const root = document.createElement("span");
-  root.classList.add("inline", "inline-var", `color${color}`);
-  root.textContent = "v";
-  root.title = `Value of ${varName}`;
-  return root;
+  const tooltip = document.createElement("span");
+  tooltip.append(
+    document.createTextNode("Value of "),
+    lookupNode(index, "vars", context, false),
+    document.createTextNode(` (${index})`),
+  );
+  const inline = makeInline("v", tooltip);
+  inline.classList.add("color" + color);
+  return inline;
 }
 
 function makeCondition(command: EventCommand, context: Context): Node[] {
