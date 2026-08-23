@@ -1,5 +1,6 @@
 :root {
   --color-wme-purple: #9664ff;
+  --color-wme-darker: #532b89;
   --color-dialogue-bg: #180c1e;
 
   --color0: white;
@@ -60,7 +61,6 @@ img {
 #content {
   width: fit-content;
   min-width: 40%;
-  /* max-width: 100%; */
   margin: auto;
   margin-top: 1em;
   margin-bottom: 1em;
@@ -70,6 +70,11 @@ img {
 
 details > summary {
   cursor: pointer;
+}
+
+h1 {
+  margin-top: 0.2em;
+  margin-bottom: 0.2em;
 }
 
 .color1 {
@@ -95,4 +100,67 @@ details > summary {
 }
 .subtle {
   color: gray;
+}
+
+button,
+input {
+  color: var(--color-wme-purple);
+  background-color: black;
+  border: 2px solid var(--color-wme-purple);
+  padding: 0.2em;
+}
+button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2em;
+  cursor: pointer;
+
+  padding-left: 0.4em;
+  padding-right: 0.4em;
+}
+button:hover {
+  color: black;
+  background-color: var(--color-wme-purple);
+}
+button:hover .checkbox.on {
+  border: 2px solid black;
+}
+
+.checkbox {
+  box-sizing: border-box;
+  width: 0.8em;
+  height: 0.8em;
+  border: 2px solid var(--color-wme-purple);
+  background-color: black;
+}
+.checkbox.on {
+  border: 2px solid black;
+  background-color: var(--color-wme-purple);
+}
+
+.header {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: left;
+  color: var(--color-wme-purple);
+  gap: 0.6em;
+  
+  margin-top: 0.4em;
+  margin-bottom: 0.4em;
+}
+.header a {
+  display: flex;
+  align-items: center;
+  text-wrap: nowrap;
+}
+.header > div {
+  display: flex;
+  gap: inherit;
+}
+.header * {
+  align-content: center;
+  font-family: inherit;
+  font-size: 1em;
 }

@@ -1,0 +1,39 @@
+#query {
+  flex-grow: 1;
+}
+
+#map-filter {
+  flex-grow: 1;
+}
+
+#loading {
+  margin-top: 0.5em;
+  text-align: center;
+}
+
+#results-container {
+  max-width: 70%;
+}
+
+details > details {
+  margin-left: 1em;
+}
+
+ul {
+  margin-top: 0.2em;
+  margin-bottom: 0.2em;
+  padding-left: 1.2em;
+  list-style: none;
+}
+
+#search,
+#search-regex {
+  flex-grow: 1;
+}
+
+li {
+  margin-top: 0.4em;
+  margin-bottom: 0.4em;
+  padding: 0.2em;
+  border: 2px solid var(--color-wme-darker);
+}

@@ -86,6 +86,13 @@ function connectButtons(): void {
   document.getElementById("playername-set")!.onclick = updatePlayerName;
 }
 
+function scrollToEvent() {
+  // dispatching HashEvent doesn't work, don't ask.
+  const oldHash = window.location.hash;
+  window.location.hash = "";
+  window.location.hash = oldHash;
+}
+
 async function reload(): Promise<void> {
   status.hidden = false;
   root.replaceChildren();
@@ -130,6 +137,7 @@ async function reload(): Promise<void> {
   }
 
   updateShowInline();
+  scrollToEvent();
   status.hidden = true;
 }
 

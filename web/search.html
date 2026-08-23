@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="styles/common.css" />
+    <link rel="stylesheet" href="styles/search.css" />
+    <link rel="icon" href="icon.png" />
+    <title>Search</title>
+  </head>
+
+  <body>
+    <div id="content" class="panel">
+      <h1 id="title">Search in Dialogue</h1>
+      <div class="header">
+        <a href="%BASE_URL%">&lt; back</a>
+      </div>
+
+      <div class="header">
+        <button id="expand">Expand all</button>
+        <button id="collapse">Collapse all</button>
+        <button id="case-toggle">
+          <div id="case-check" class="checkbox on"></div>
+          Ignore case
+        </button>
+        <button id="search">Search</button>
+        <button
+          id="search-regex"
+          title="Search with regular expression (slower)"
+        >
+          RegEx
+        </button>
+      </div>
+      <div class="header">
+        <input id="query" type="text" placeholder="Text/RegEx" />
+        <button id="clear">x</button>
+      </div>
+      <div class="header">
+        <span>Filter maps:</span>
+        <input id="map-filter" type="text" placeholder="1,3,6-7,common" />
+        <button id="clear-filter">x</button>
+      </div>
+
+      <h2 id="loading" hidden>Loading...</h1>
+      <h2 id="count" hidden>No results.</h1>
+
+      <div id="results-container" hidden>
+        <h2 id="results-heading"></h2>
+        <div id="results"></div>
+      </div>
+    </div>
+
+    <script type="module" src="src/search.ts"></script>
+  </body>
+</html>

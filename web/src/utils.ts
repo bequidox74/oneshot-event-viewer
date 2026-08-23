@@ -191,6 +191,10 @@ export function setBoolOption(key: string, value: boolean): void {
   sessionStorage.setItem(key, value.toString());
 }
 
+export function getCheckboxOn(checkbox: HTMLElement): boolean {
+  return checkbox.classList.contains("on");
+}
+
 export function setCheckboxOn(checkbox: HTMLElement, on: boolean): void {
   if (on) checkbox.classList.add("on");
   else checkbox.classList.remove("on");
@@ -202,4 +206,28 @@ export function createPlayerNode(): HTMLSpanElement {
   span.textContent = name;
   span.classList.add("player");
   return span;
+}
+
+export function createSpoiler(
+  ...caption: (string | Node)[]
+): HTMLDetailsElement {
+  const details = document.createElement("details");
+  const summary = document.createElement("summary");
+  summary.append(...caption);
+  details.appendChild(summary);
+  return details;
+}
+
+export function createHeading(
+  name: string | null | undefined,
+  id: number,
+): HTMLSpanElement {
+  const root = document.createElement("span");
+
+  const nameSpan = document.createElement("span");
+  if (!name) nameSpan.classList.add("subtle");
+  nameSpan.textContent = name ? name : "(unnamed)";
+
+  root.append(nameSpan, ` [${id}]`);
+  return root;
 }

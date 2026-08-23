@@ -2,64 +2,6 @@
   text-align: center;
 }
 
-#header {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  align-items: left;
-  color: var(--color-wme-purple);
-  gap: 0.6em;
-}
-#header a {
-  display: flex;
-  align-items: center;
-  text-wrap: nowrap;
-}
-#header > div {
-  display: flex;
-  gap: inherit;
-}
-#header * {
-  font-family: inherit;
-  font-size: 1em;
-}
-
-button,
-input {
-  color: var(--color-wme-purple);
-  background-color: black;
-  border: 2px solid var(--color-wme-purple);
-  padding: 0.2em;
-}
-button {
-  display: flex;
-  align-items: center;
-  gap: 0.2em;
-  cursor: pointer;
-
-  padding-left: 0.4em;
-  padding-right: 0.4em;
-}
-button:hover {
-  color: black;
-  background-color: var(--color-wme-purple);
-}
-button:hover .checkbox.on {
-  border: 2px solid black;
-}
-
-.checkbox {
-  box-sizing: border-box;
-  width: 0.8em;
-  height: 0.8em;
-  border: 2px solid var(--color-wme-purple);
-  background-color: black;
-}
-.checkbox.on {
-  border: 2px solid black;
-  background-color: var(--color-wme-purple);
-}
-
 details {
   width: 100%;
   margin-top: 0.5em;
@@ -224,7 +166,7 @@ ul.choices {
 }
 .command:not(:has(> .dialogue-box)) {
   padding: 0.4em;
-  outline: 2px solid #532b89;
+  outline: 2px solid var(--color-wme-darker);
   border-right: none;
 }
 .command .command {
