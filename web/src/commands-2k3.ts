@@ -1145,14 +1145,15 @@ export function makeCommand2k3(
       const eventId = params[1] as number;
       const eventPage = params[2] as number;
 
-      const result: Node[] = [document.createTextNode("Call ")];
+      const result: Node[] = [];
+      if (!context.dialogueOnly) result.push(document.createTextNode("Call "));
       switch (eventType) {
         case 0: {
           // common event
-          result.push(
-            document.createTextNode("Common Event "),
-            createValueNode(eventId.toString()),
-          );
+          if (!context.dialogueOnly) {
+            result.push(document.createTextNode("Common Event "));
+            result.push(createValueNode(eventId.toString()));
+          }
 
           if (eventId == 6) {
             const boxes = MESSAGE_BOXES[context.nativeArg1!];

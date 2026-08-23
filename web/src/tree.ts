@@ -266,8 +266,16 @@ function makeEventCommands(commands: EventCommand[], context: Context): Node {
   if (!commands) return root;
 
   function shouldSkip(command: EventCommand): boolean {
-    if (command.code == 355 && command.params[0].startsWith("EdText"))
+    if (command.code == 355 && command.params[0].startsWith("EdText")) {
       return false;
+    }
+    if (
+      command.code == 12330 &&
+      command.params[0] == 0 &&
+      command.params[1] == 6
+    ) {
+      return false;
+    }
     return context.dialogueOnly && !DIALOGUE_ONLY_CODES.has(command.code);
   }
 
