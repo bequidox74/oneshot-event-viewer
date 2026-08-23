@@ -276,16 +276,22 @@ div.code {
 .ed-box[data-type="err"] {
   --color-edbox: red;
 }
+.ed-box[data-type="warn"] {
+  --color-edbox: yellow;
+}
+.ed-box[data-type="yesno"] {
+  --color-edbox: dodgerblue;
+}
 .ed-box {
   --color-edbox: var(--color-wme-purple);
   --window-bar-height: 24px;
   display: block;
-  margin: 0.4em;
+  margin: 0.8em;
   margin-left: auto;
   margin-right: auto;
   position: relative;
   border: 2px solid var(--color-edbox);
-  width: fit-content;
+  width: 60%;
 }
 .ed-box-bar {
   background-color: var(--color-edbox);

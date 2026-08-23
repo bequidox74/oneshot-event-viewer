@@ -1,8 +1,12 @@
 import { makeCommand2k3 } from "./commands-2k3";
-import { DEFAULT_PLAYER_NAME, options } from "./options";
 import type { Context } from "./tree";
 import type { AudioFile, EventCommand } from "./types";
-import { addTooltip, createSpanNode, lookupNode } from "./utils";
+import {
+  addTooltip,
+  createPlayerNode,
+  createSpanNode,
+  lookupNode,
+} from "./utils";
 
 export const CODE_TO_COMPARISON: { [key: number]: string } = {
   0: "==",
@@ -353,7 +357,7 @@ function makeDialogueBox(command: EventCommand, context: Context): HTMLElement {
   return root;
 }
 
-function parseEscapes(raw: string, context: Context): Node[] {
+export function parseEscapes(raw: string, context: Context): Node[] {
   if (DEBUG_DISABLE_ESCAPE_PROCESSING) {
     return [document.createTextNode(raw)];
   }
@@ -431,11 +435,7 @@ function parseEscapes(raw: string, context: Context): Node[] {
           break;
         }
         case "p": {
-          const name = options.playerName ?? DEFAULT_PLAYER_NAME;
-          const span = document.createElement("span");
-          span.textContent = name;
-          span.classList.add("player");
-          result.push(span);
+          result.push(createPlayerNode());
           break;
         }
         case "c": {
@@ -714,7 +714,15 @@ function makeEdText(code: string, context: Context): Node | null {
   const quote = code.indexOf('"');
   if (quote < 0) return null;
   const funcName = code.substring(7, quote - 1);
+  const text = code.substring(quote + 1, code.lastIndexOf('"'));
+  return makeMessageBox(text, funcName, context);
+}
 
+export function makeMessageBox(
+  text: string,
+  type: string,
+  context: Context,
+): Node {
   const box = document.createElement("div");
   box.classList.add("ed-box");
 
@@ -740,14 +748,13 @@ function makeEdText(code: string, context: Context): Node | null {
   const boxBtns = document.createElement("div");
   boxBtns.classList.add("ed-box-btns");
 
-  const text = code.substring(quote + 1, code.lastIndexOf('"'));
   const parts = parseEscapes(text.replaceAll("\\\\", "\\"), context); // only used to handle \p
   const textNode = document.createElement("div");
   textNode.classList.add("ed-box-text");
   textNode.append(...parts);
   content.appendChild(textNode);
 
-  switch (funcName) {
+  switch (type) {
     case "info": {
       box.dataset.type = "info";
       title.textContent = "Info";
@@ -765,6 +772,14 @@ function makeEdText(code: string, context: Context): Node | null {
     case "err": {
       box.dataset.type = "err";
       title.textContent = "Error";
+      boxBtns.appendChild(makeButton("Ok"));
+      break;
+    }
+
+    // 2k3 hacks below:
+    case "warn": {
+      box.dataset.type = "warn";
+      title.textContent = "Warning";
       boxBtns.appendChild(makeButton("Ok"));
       break;
     }

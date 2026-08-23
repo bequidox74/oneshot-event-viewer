@@ -3,6 +3,7 @@ import {
   createVarValueNode,
   createTone,
   CODE_TO_COMPARISON,
+  makeMessageBox,
 } from "./commands";
 import type { Context } from "./tree";
 import type { EventCommand } from "./types";
@@ -49,6 +50,86 @@ const FUNC_TO_NAME_MAP: string[] = [
   "func_End",
   "func_SetCloseEnabled",
 ];
+
+type MessageBox = {
+  text: string;
+  type: "info" | "warn" | "err" | "yesno";
+};
+const MESSAGE_BOXES: Record<number, MessageBox[]> = {
+  0: [
+    {
+      text: "You only have one shot, \\p.",
+      type: "info",
+    },
+  ],
+  1: [
+    {
+      text: "Do you understand what this means?",
+      type: "yesno",
+    },
+  ],
+  2: [
+    {
+      text: "Still having trouble? Want me to spell it out for you?",
+      type: "yesno",
+    },
+  ],
+  3: [
+    {
+      text: "Surely you know where to find it now?",
+      type: "yesno",
+    },
+  ],
+  4: [
+    {
+      text: "You're still planning on saving the world, aren't you?",
+      type: "info",
+    },
+    {
+      text: "The world is suffering.",
+      type: "info",
+    },
+  ],
+  5: [
+    {
+      text: "The savior is gone. All hope for the world is lost.",
+      type: "err",
+    },
+  ],
+  6: [
+    {
+      text: "Well, you would have realized it sooner or later.",
+      type: "info",
+    },
+    {
+      text: "I've had enough of this world. Haven't you?",
+      type: "warn",
+    },
+    {
+      text: "Either that lightbulb will be destroyed, or Niko will be killed.",
+      type: "warn",
+    },
+    {
+      // we're escaping newlines twice with this one!
+      text: "I'll make sure you never reach the end.\\nQuit now, and save yourself the effort.",
+      type: "err",
+    },
+  ],
+  7: [
+    {
+      text: "If Niko smashes the bulb and leaves, it will just be like waking up from a bad dream.",
+      type: "info",
+    },
+    {
+      text: "Niko will be miserable in this world.",
+      type: "info",
+    },
+    {
+      text: "You do care about Niko, don't you?",
+      type: "info",
+    },
+  ],
+};
 
 //
 // ALL HOPE ABANDON YE WHO ENTER HERE
@@ -175,7 +256,10 @@ export function makeCommand2k3(
           result.push(lookupNode(params[1], "vars", context));
           if (params[1] == 1) {
             // changing "func"
-            context.nativeFunc = params[4];
+            context.nativeFunc = params[5];
+          } else if (params[1] == 2) {
+            // changing "arg1"
+            context.nativeArg1 = params[5];
           }
           break;
         }
@@ -426,21 +510,6 @@ export function makeCommand2k3(
       const sfxCtx = SYSTEM_SFX[params[0]];
       const file = params.at(-1);
 
-      // if (file.textContent == "_func") {
-      //   const tooltip = addTooltip(
-      //     file,
-      //     "Call internal function specified by variable ",
-      //   ) as HTMLSpanElement;
-      //   tooltip.append(createVariableNode("func"));
-      //   tooltip.style.color = "white";
-      // } else if (file.textContent == "_init") {
-      //   const tooltip = addTooltip(
-      //     file,
-      //     "Call internal initialization routine",
-      //   ) as HTMLSpanElement;
-      //   tooltip.style.color = "white";
-      // }
-
       const result: Node[] = [
         document.createTextNode("Change System SFX "),
         createValueNode(sfxCtx),
@@ -461,6 +530,7 @@ export function makeCommand2k3(
         details.classList.add("explanation");
         summary.textContent = "Explanation";
         details.appendChild(summary);
+        result.push(details);
 
         if (file == "_init") {
           const calls = document.createElement("a");
@@ -493,7 +563,6 @@ export function makeCommand2k3(
             '" from the C wrapper by hooking sound file loading.',
           );
         }
-        result.push(details);
       }
 
       return result;
@@ -1084,6 +1153,14 @@ export function makeCommand2k3(
             document.createTextNode("Common Event "),
             createValueNode(eventId.toString()),
           );
+
+          if (eventId == 6) {
+            const boxes = MESSAGE_BOXES[context.nativeArg1!];
+            for (const box of boxes) {
+              const mbox = makeMessageBox(box.text, box.type, context);
+              result.push(mbox);
+            }
+          }
           break;
         }
         case 1: {

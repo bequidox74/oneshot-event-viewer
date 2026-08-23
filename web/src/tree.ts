@@ -11,27 +11,31 @@ import type {
 } from "./types";
 import { createCollapsibleHeading, createSpanNode, lookupNode } from "./utils";
 
+// you could say i am the man behind the (dialogue) tree...
+
 export type Context = {
   misc: MiscDefinitions;
   maps: Record<string, string>;
   dialogueOnly: boolean;
   is2k3: boolean;
+
   speaker?: {
     index: number;
     name: string;
   };
+
   map?: MapDefinition;
   event?: MapEvent | CommonEvent;
   pageId?: number;
   page?: EventPage;
+
   nativeFunc?: number;
+  nativeArg1?: number;
 };
 
 const DIALOGUE_ONLY_CODES = new Set([
   101, // show text
   10110, // show text
-  // 10140, // show options
-  // 20140, // choice option
 ]);
 
 export function makeCommonEvents(events: CommonEvents, context: Context): Node {

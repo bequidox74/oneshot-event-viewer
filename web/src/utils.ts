@@ -1,3 +1,4 @@
+import { DEFAULT_PLAYER_NAME, options } from "./options";
 import type { Context } from "./tree";
 
 type CollapsibleHeading = {
@@ -193,4 +194,12 @@ export function setBoolOption(key: string, value: boolean): void {
 export function setCheckboxOn(checkbox: HTMLElement, on: boolean): void {
   if (on) checkbox.classList.add("on");
   else checkbox.classList.remove("on");
+}
+
+export function createPlayerNode(): HTMLSpanElement {
+  const name = options.playerName ?? DEFAULT_PLAYER_NAME;
+  const span = document.createElement("span");
+  span.textContent = name;
+  span.classList.add("player");
+  return span;
 }
