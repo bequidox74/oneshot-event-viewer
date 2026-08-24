@@ -355,7 +355,7 @@ function makeDialogueBox(command: EventCommand, context: Context): HTMLElement {
   if (face === "@ed" || face === "@os14/narrator0") {
     root.classList.add("ed-speak");
   } else if (face === "@desktop") {
-    root.classList.add("desktop");
+    return makeMessageBox(text, "desktop", context);
   } else if (face === "@credits") {
     root.classList.add("credits");
   } else if (!note) {
@@ -769,7 +769,7 @@ export function makeMessageBox(
   text: string,
   type: string,
   context: Context,
-): Node {
+): HTMLElement {
   const box = document.createElement("div");
   box.classList.add("ed-box");
 
@@ -822,8 +822,11 @@ export function makeMessageBox(
       boxBtns.appendChild(makeButton("Ok"));
       break;
     }
-
-    // 2k3 hacks below:
+    case "desktop": {
+      box.dataset.type = "desktop";
+      boxBtns.appendChild(makeButton("OK"));
+      break;
+    }
     case "warn": {
       box.dataset.type = "warn";
       title.textContent = "Warning";
