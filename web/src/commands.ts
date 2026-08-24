@@ -112,7 +112,7 @@ export function makeCommand(
       ];
     }
     case 102:
-      return makeShowChoices(command);
+      return makeShowChoices(command, context);
     case 103: // Input Number
       return [
         document.createTextNode("Input Number into "),
@@ -690,22 +690,23 @@ function makeCondition(command: EventCommand, context: Context): Node[] {
   return result;
 }
 
-function makeShowChoices(command: EventCommand): HTMLElement {
+function makeShowChoices(command: EventCommand, context: Context): HTMLElement {
   const root = document.createElement("div");
 
   const title = document.createTextNode("Show Choices:");
   root.appendChild(title);
 
-  const options = command.params[0] as string[];
+  let options: string[];
+  if (context.game == "wme")
+    options = JSON.parse(command.params[0]);
+  else options = command.params;
+
   const choices = document.createElement("ul");
   choices.classList.add("choices");
   for (const option of options) {
     const li = document.createElement("li");
-    li.textContent = option;
-    li.innerHTML = li.innerHTML.replaceAll(
-      "\\p",
-      `<span class="player">Player</span>`,
-    );
+    const content = parseEscapes(option, context);
+    li.append(...content);
     choices.appendChild(li);
   }
   root.appendChild(choices);
