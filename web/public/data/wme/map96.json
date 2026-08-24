@@ -1,1 +1,1 @@
-{"name":{"name":"Lobby-OLD VER"},"id":96,"events":[{"id":1,"name":"EV001","x":25,"y":17,"pages":[{"list":[{"code":101,"params":["THOU SHALT NOT PASS"]}]}]},{"id":2,"name":"EV002","x":22,"y":18,"pages":[{"list":[{"code":101,"params":["@niko That sure is some books"]}]}]}]}
+{"name":"Lobby-OLD VER","id":96,"events":[{"id":1,"name":"EV001","x":25,"y":17,"pages":[{"list":[{"code":101,"params":["THOU SHALT NOT PASS"]}]}]},{"id":2,"name":"EV002","x":22,"y":18,"pages":[{"list":[{"code":101,"params":["@niko That sure is some books"]}]}]}]}

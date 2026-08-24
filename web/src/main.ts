@@ -74,7 +74,7 @@ for (const game of games) {
   }
 
   for (const [id, elem] of elems.entries()) {
-    const parentId = maps[id].parent;
+    const parentId = maps[id].parent ?? 0;
     const parent = innerLists.get(parentId) ?? mapList;
     parent.appendChild(elem);
   }

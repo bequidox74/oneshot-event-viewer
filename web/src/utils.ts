@@ -155,7 +155,7 @@ export function lookupNode(
       }
     }
   } else if (type == "map") {
-    text = context.maps[id].name;
+    if (id.toString() in context.maps) text = context.maps[id].name;
     if (!text) {
       text = "(unnamed)";
       cls = "subtle";

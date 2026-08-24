@@ -1,6 +1,6 @@
 export type MapInfo = {
-  name: string,
-  parent: number,
+  name: string;
+  parent?: number;
 };
 
 export type MapInfos = MapInfo[];

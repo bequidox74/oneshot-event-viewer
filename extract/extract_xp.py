@@ -268,7 +268,7 @@ def do_wme(args: Namespace) -> None:
             continue
 
         map_id = int(p.stem[10:])  # skip "events_map"
-        map_name = map_names[map_id]
+        map_name = map_names[map_id]["name"]
         logger.debug(f"processing {map_name} ({map_id})")
 
         with open(p) as file:
