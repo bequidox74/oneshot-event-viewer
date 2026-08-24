@@ -91,7 +91,8 @@ def do_xp(args: Namespace) -> None:
                 root = json.load(file)
 
             events = process_map_xp(root)
-            map_ = {"name": map_name, "id": map_id, "events": events}
+            parent = map_infos[str(map_id)]["parent_id"]
+            map_ = {"name": map_name, "id": map_id, "parent": parent, "events": events}
             save(map_, out_path / f"map{map_id}.json", args.pretty, args.dry_run)
 
         elif p.stem == "xScripts":

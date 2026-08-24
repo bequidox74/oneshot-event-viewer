@@ -1,1 +1,1 @@
-{"name":"store pan","id":25,"events":[{"id":1,"name":"init","x":0,"y":0,"pages":[{"list":[{"code":204,"params":[0,"skyline",0]},{"code":355,"params":["clamp_panorama\n"]},{"code":116}]}]}]}
+{"name":"store pan","id":25,"parent":120,"events":[{"id":1,"name":"init","x":0,"y":0,"pages":[{"list":[{"code":204,"params":[0,"skyline",0]},{"code":355,"params":["clamp_panorama\n"]},{"code":116}]}]}]}
