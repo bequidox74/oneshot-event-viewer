@@ -750,11 +750,9 @@ function makeScript(command: EventCommand, context: Context): Node[] {
 }
 
 function makeEdText(code: string, context: Context): Node | null {
-  const quote = code.indexOf('"');
-  if (quote < 0) return null;
-  const funcName = code.substring(7, quote - 1);
-  const text = code.substring(quote + 1, code.lastIndexOf('"'));
-  return makeMessageBox(text, funcName, context);
+  const match = code.match(/EdText\.(\w+)\b[^"]*?"([^"]*?)"/);
+  if (!match) return null;
+  return makeMessageBox(match[2], match[1], context);
 }
 
 export function makeMessageBox(
