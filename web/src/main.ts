@@ -8,7 +8,7 @@ for (const d of details) {
   if (value) d.open = (value == "true");
 }
 
-const games = ["os14", "os16", "wme", "pc"];
+const games = ["os14", "os16", "wme", "pc", "frostide"];
 for (const game of games) {
   const maps: Record<string, string> = await fetch(
     `data/${game}/maps.json`,

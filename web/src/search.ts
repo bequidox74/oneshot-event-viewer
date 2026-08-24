@@ -29,6 +29,7 @@ const GAME_NAME: Record<string, string> = {
   os16: "OS16",
   pc: "TPE",
   wme: "WME",
+  frostide: "Frostide",
 };
 
 // ===== State =====
