@@ -1161,6 +1161,7 @@ export function makeCommand2k3(
               const mbox = makeMessageBox(box.text, box.type, context);
               result.push(mbox);
             }
+            return result;
           }
           break;
         }
