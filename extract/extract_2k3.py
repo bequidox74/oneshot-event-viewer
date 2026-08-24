@@ -44,7 +44,7 @@ def get_map_names(in_path: Path) -> dict[int, dict]:
     for map_info in emt:
         map_names[int(getatt(map_info, "id"))] = {
             "name": getvalue(map_info, "name"),
-            "parent": getvalue(map_info, "parent_map"),
+            "parent": int(getvalue(map_info, "parent_map")),
         }
     del map_names[0]  # exclude ID 0 because it's not really a map
     return map_names
