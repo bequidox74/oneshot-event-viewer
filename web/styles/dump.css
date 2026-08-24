@@ -118,6 +118,8 @@ ul.choices {
 
   margin-left: 2px;
   margin-right: 2px;
+  
+  white-space: pre-wrap;
 }
 .inline.tooltip-base {
   text-decoration: none;

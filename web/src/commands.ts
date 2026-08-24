@@ -1,8 +1,9 @@
 import { makeCommand2k3 } from "./commands-2k3";
 import type { Context } from "./tree";
-import type { AudioFile, EventCommand } from "./types";
+import { type AudioFile, type EventCommand } from "./types";
 import {
   addTooltip,
+  createOnOff,
   createPlayerNode,
   createSpanNode,
   lookupNode,
@@ -179,6 +180,11 @@ export function makeCommand(
         document.createTextNode('Change Windowskin to "'),
         createSpanNode(params[0] as string, "value"),
         document.createTextNode('"'),
+      ];
+    case 135: // Change Menu Access
+      return [
+        document.createTextNode("Set Menu Disabled "),
+        createOnOff(params[0] == 0),
       ];
     case 201:
       return makeTransferPlayer(command, context);
@@ -368,7 +374,8 @@ export function parseEscapes(raw: string, context: Context): Node[] {
   let start = 0;
   let end = 0;
 
-  raw = raw.replaceAll("’", "'"); // HACK: workaround until the preprocesor is updated
+  raw = raw.replaceAll("’", "'"); // "it's not a hack, it's a feature"
+
   if (context.is2k3) {
     raw = raw.replaceAll("_PlayerName_xxxxxxxxxxxxxxxxxxxx", "\\p");
     raw = raw.replaceAll("_PlayerName_guess_xxxxxxxxxxxxxx", "\\p");
@@ -462,11 +469,43 @@ export function parseEscapes(raw: string, context: Context): Node[] {
           break;
         }
         default: {
-          console.error("Unknown escape sequence: " + c);
-          result.push(document.createTextNode("\\"));
-          end -= 1;
-          start = end;
-          break;
+          const subs = raw.substring(end - 1, end + 7);
+          if (subs === "docspath") {
+            result.push(makeInline("D", "Path to the 'Documents' directory"));
+            end += 7;
+            start = end;
+          } else if (subs === "gamepath") {
+            result.push(makeInline("G", "Path to the game directory"));
+            end += 7;
+            start = end;
+          } else {
+            const subs = raw.substring(end - 1, end + 4);
+            if (subs.startsWith("twms")) {
+              result.push(
+                makeInline(
+                  "w",
+                  "Player's chosen true name\nof The World Machine (possesive)",
+                ),
+              );
+              end += 3;
+              start = end;
+            } else if (subs.startsWith("twm")) {
+              result.push(
+                makeInline(
+                  "W",
+                  "Player's chosen true name\nof The World Machine",
+                ),
+              );
+              end += 2;
+              start = end;
+            } else {
+              console.error("Unknown escape sequence: " + c);
+              result.push(document.createTextNode("\\"));
+              end -= 1;
+              start = end;
+              break;
+            }
+          }
         }
       }
     } else end++;

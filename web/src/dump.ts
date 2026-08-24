@@ -102,6 +102,7 @@ async function reload(): Promise<void> {
   ).then((res) => res.json());
 
   const context: Context = {
+    game: game,
     misc: miscDefs,
     maps: maps,
     dialogueOnly: options.dialogueOnly,

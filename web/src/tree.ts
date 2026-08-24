@@ -24,6 +24,8 @@ export type Context = {
     name: string;
   };
 
+  game: string;
+
   map?: MapDefinition;
   event?: MapEvent | CommonEvent;
   pageId?: number;
