@@ -48,7 +48,17 @@ type Tone = {
   saturation?: number;
 };
 
-export function createTone(tone: Tone): Node[] {
+export function createTone(tone: Tone | string): Node[] {
+  if (typeof tone === "string") {
+    const rgba = tone.substring(1, tone.length - 1).split(",");
+    tone = {
+      red: parseInt(rgba[0]),
+      green: parseInt(rgba[1]),
+      blue: parseInt(rgba[2]),
+      alpha: parseInt(rgba[3]),
+    };
+  }
+
   const red = createSpanNode(`R:${tone.red}`, "color1");
   const green = createSpanNode(`G:${tone.green}`, "color2");
   const blue = createSpanNode(`B:${tone.blue}`, "color4");
@@ -697,8 +707,7 @@ function makeShowChoices(command: EventCommand, context: Context): HTMLElement {
   root.appendChild(title);
 
   let options: string[];
-  if (context.game == "wme")
-    options = JSON.parse(command.params[0]);
+  if (context.game == "wme") options = JSON.parse(command.params[0]);
   else options = command.params;
 
   const choices = document.createElement("ul");
