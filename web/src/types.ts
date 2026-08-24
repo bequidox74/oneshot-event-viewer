@@ -1,3 +1,10 @@
+export type MapInfo = {
+  name: string,
+  parent: number,
+};
+
+export type MapInfos = MapInfo[];
+
 export type MapDefinition = {
   name: string;
   id: number;

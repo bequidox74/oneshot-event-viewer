@@ -1,3 +1,5 @@
+import type { MapInfos } from "./types";
+
 const details = document.querySelectorAll("details");
 for (const d of details) {
   const key = `${d.id}-open`;
@@ -10,19 +12,19 @@ for (const d of details) {
 
 const games = ["os14", "os16", "wme", "pc", "frostide"];
 for (const game of games) {
-  const maps: Record<string, string> = await fetch(
-    `data/${game}/maps.json`,
-  ).then((res) => res.json());
+  const maps: MapInfos = await fetch(`data/${game}/maps.json`).then((res) =>
+    res.json(),
+  );
 
   const mapList = document.getElementById(game)!;
 
-  const innerLists: Map<string, HTMLUListElement> = new Map();
-  const elems: Map<string, HTMLLIElement> = new Map();
+  const innerLists: Map<number, HTMLUListElement> = new Map();
+  const elems: Map<number, HTMLLIElement> = new Map();
 
   function makeLink(
     href: string,
     text: string,
-    mapId: string,
+    mapId: number | null,
     cls?: string,
   ): HTMLLIElement {
     const li = document.createElement("li");
@@ -43,7 +45,7 @@ for (const game of games) {
   const allMapsLink = makeLink(
     `dump?game=${game}&map=all`,
     "All Maps",
-    "all",
+    null,
     "highlight",
   );
   allMapsLink.title = "Warning! This may lag your browser!";
@@ -52,30 +54,33 @@ for (const game of games) {
     makeLink(
       `dump?game=${game}&map=common`,
       "Common Events",
-      "common",
+      null,
       "highlight",
     ),
   );
 
   // make all links
-  for (const [id, name] of Object.entries(maps)) {
+  for (const entry of Object.entries(maps)) {
+    const id = parseInt(entry[0]);
+    const mapInfo = entry[1];
     elems.set(
       id,
       makeLink(
         `dump?game=${game}&map=${id}`,
-        `[${id}] ${name ?? "(unnamed map)"}`,
+        `[${id}] ${mapInfo.name ?? "(unnamed map)"}`,
         id,
       ),
     );
   }
-  
+
   for (const [id, elem] of elems.entries()) {
-    const parent = innerLists.get(id) ?? mapList;
+    const parentId = maps[id].parent;
+    const parent = innerLists.get(parentId) ?? mapList;
     parent.appendChild(elem);
   }
-  
-  // // prune empty lists
-  // for (const list of innerLists.values()) {
-  //   if (!list.hasChildNodes()) list.remove();
-  // }
+
+  // prune empty lists
+  for (const list of innerLists.values()) {
+    if (!list.hasChildNodes()) list.remove();
+  }
 }
