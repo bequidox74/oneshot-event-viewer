@@ -19,9 +19,12 @@ def do_xp(args: Namespace) -> None:
         map_infos: dict = json.load(file)
         logger.info("loaded map infos")
 
-    map_names: dict[int, str] = {}
+    map_names: dict[int, dict] = {}
     for map_ in map_infos:
-        map_names[int(map_)] = map_infos[map_]["name"]
+        map_names[int(map_)] = {
+            "name": map_infos[map_]["name"],
+            "parent": map_infos[map_]["parent_id"],
+        }
 
     save(map_names, out_path / "maps.json", args.pretty, args.dry_run)
     # endregion
@@ -238,13 +241,13 @@ def do_wme(args: Namespace) -> None:
 
     # region load map names
     logger.info("loading map names")
-    map_names: dict[int, str] = {}
+    map_names: dict[int, dict] = {}
     with open(in_dir / "oneshot_map_names.json") as file:
         obj: dict = json.load(file)
         for o in obj["map_names"]:
             id_ = int(o["id"])
             name = o["name"]
-            map_names[id_] = name
+            map_names[id_] = {"name": name}
             logger.debug(f"loaded map info for {name} ({id_})")
         del obj
     save(map_names, out_dir / "maps.json", args.pretty, args.dry_run)

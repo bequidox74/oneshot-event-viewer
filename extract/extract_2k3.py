@@ -17,12 +17,7 @@ def do_2k3(args: Namespace) -> None:
     edb = ET.parse(in_path / "RPG_RT.edb").getroot()[0]
 
     map_names = get_map_names(in_path)
-    save(
-        {k: v[0] for k, v in map_names.items()},
-        out_path / "maps.json",
-        args.pretty,
-        args.dry_run,
-    )
+    save(map_names, out_path / "maps.json", args.pretty, args.dry_run)
 
     misc = get_misc(edb)
     save(misc, out_path / "misc.json", args.pretty, args.dry_run)
@@ -37,20 +32,20 @@ def do_2k3(args: Namespace) -> None:
 
         map_ = get_map(path)
         id_: int = map_["id"]
-        map_["name"] = map_names[id_][0]
-        map_["parent"] = map_names[id_][1]
+        map_["name"] = map_names[id_]["name"]
+        map_["parent"] = map_names[id_]["parent"]
         save(map_, out_path / f"map{id_}.json", args.pretty, args.dry_run)
 
 
-def get_map_names(in_path: Path) -> dict[int, tuple[str, int]]:
+def get_map_names(in_path: Path) -> dict[int, dict]:
     logger.info("processing map names")
     map_names = {}
     emt = ET.parse(in_path / "RPG_RT.emt").getroot()[0][0]
     for map_info in emt:
-        map_names[int(getatt(map_info, "id"))] = (
-            getvalue(map_info, "name"),
-            getvalue(map_info, "parent_map"),
-        )
+        map_names[int(getatt(map_info, "id"))] = {
+            "name": getvalue(map_info, "name"),
+            "parent": getvalue(map_info, "parent_map"),
+        }
     del map_names[0]  # exclude ID 0 because it's not really a map
     return map_names
 

@@ -1,1 +1,1 @@
-{"1":"INIT","6":"Kitchen","9":"Red sky","52":"Cafe","53":"Cafe inside"}
+{"1":{"name":"INIT","parent":0},"6":{"name":"Kitchen","parent":53},"9":{"name":"Red sky","parent":0},"52":{"name":"Cafe","parent":9},"53":{"name":"Cafe inside","parent":52}}
