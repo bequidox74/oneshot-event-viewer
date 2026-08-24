@@ -1,6 +1,6 @@
 import { options } from "./options";
 import { makeCommonEvents, makeMap, type Context } from "./tree";
-import type { CommonEvents, MapDefinition } from "./types";
+import type { CommonEvents, MapDefinition, MapInfos, MiscDefinitions } from "./types";
 import { setCheckboxOn } from "./utils";
 
 const NAME_PLACEHOLDERS: ReadonlyArray<string> = [
@@ -17,7 +17,7 @@ const map = urlParams.get("map") ?? "common";
 const root = document.getElementById("root")!;
 const status = document.getElementById("status")!;
 
-const miscDefs = await fetch(
+const miscDefs: MiscDefinitions = await fetch(
   `data/${game == "wme" ? "os16" : game}/misc.json`,
 ).then((res) => res.json());
 
@@ -97,7 +97,7 @@ async function reload(): Promise<void> {
   status.hidden = false;
   root.replaceChildren();
 
-  const maps: Record<string, string> = await fetch(
+  const maps: MapInfos = await fetch(
     `data/${game}/maps.json`,
   ).then((res) => res.json());
 

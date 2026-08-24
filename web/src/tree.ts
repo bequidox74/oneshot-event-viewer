@@ -6,6 +6,7 @@ import type {
   EventPage,
   MapDefinition,
   MapEvent,
+  MapInfos,
   MiscDefinitions,
   RpgEvent,
 } from "./types";
@@ -15,7 +16,7 @@ import { createCollapsibleHeading, createSpanNode, lookupNode } from "./utils";
 
 export type Context = {
   misc: MiscDefinitions;
-  maps: Record<string, string>;
+  maps: MapInfos;
   dialogueOnly: boolean;
   is2k3: boolean;
 
