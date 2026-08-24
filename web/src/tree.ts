@@ -51,7 +51,9 @@ export function makeCommonEvents(events: CommonEvents, context: Context): Node {
   root.appendChild(details);
 
   for (const event of events) {
-    details.appendChild(makeCommonEvent(event, root.id, context));
+    const e = makeCommonEvent(event, root.id, context);
+    if (!e) continue;
+    details.appendChild(e);
   }
 
   return root;
@@ -85,13 +87,13 @@ function makeCommonEvent(
   event: CommonEvent,
   parentId: string,
   context: Context,
-): Node {
+): Node | null {
   const [root, content] = makeEventBase(event, parentId);
 
   const info = document.createElement("div");
   info.classList.add("event-info");
 
-  if (event.trigger !== undefined) {
+  if (event.trigger !== undefined && !context.dialogueOnly) {
     const span = document.createElement("div");
     span.append(
       document.createTextNode("Trigger: "),
@@ -100,7 +102,7 @@ function makeCommonEvent(
     info.appendChild(span);
   }
 
-  if (event.switchId !== undefined) {
+  if (event.switchId !== undefined && !context.dialogueOnly) {
     const sid = (event as CommonEvent).switchId;
     const span = document.createElement("div");
     span.append(
@@ -112,7 +114,9 @@ function makeCommonEvent(
   }
 
   content.appendChild(info);
-  content.appendChild(makeEventCommands(event.commands, context));
+  const commands = makeEventCommands(event.commands, context);
+  content.appendChild(commands);
+  if (!commands.hasChildNodes()) return null;
   return root;
 }
 
