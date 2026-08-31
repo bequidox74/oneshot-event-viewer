@@ -708,7 +708,8 @@ function makeShowChoices(command: EventCommand, context: Context): HTMLElement {
 
   let options: string[];
   if (context.game == "wme") options = JSON.parse(command.params[0]);
-  else options = command.params;
+  else if (context.game == "os14") options = command.params;
+  else options = command.params[0];
 
   const choices = document.createElement("ul");
   choices.classList.add("choices");
