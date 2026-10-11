@@ -2,7 +2,7 @@
 
 Allows browsing of RPG Maker events in *OneShot 2014*, *OneShot 2016*, *OneShot: World Machine Edition*, *The Pancake Episode*, and the *Frostide* mod.
 
-## 🧪 Beta Notice 🐞
+## Bug Notice 🐞
 
 May contain bugs, missing features, and UI jank. Please report issues on the [issue tracker](https://github.com/bequidox74/oneshot-event-viewer/issues).
 
