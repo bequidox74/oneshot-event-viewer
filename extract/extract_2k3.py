@@ -102,6 +102,11 @@ def get_map(in_path: Path) -> dict:
     for ein in gettag(root, "events"):
         eout = {}
         eout["id"] = int(getatt(ein, "id"))
+        
+        name = gettag(ein, "name").text
+        if name is not None:
+            eout["name"] = name
+        
         eout["x"] = int(getvalue(ein, "x"))
         eout["y"] = int(getvalue(ein, "y"))
 
